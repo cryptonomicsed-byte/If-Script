@@ -27,6 +27,9 @@ lazy_static::lazy_static! {
         
         // Ọ̀túúrúpọ̀n — Seal
         m.insert("Ọ̀túúrúpọ̀n", OduOp::HaltIfOne);
+
+        // CastCowries — Entropy Oracle
+        m.insert("CastCowries", OduOp::CastCowries);
         
         // Special Instructions
         m.insert("CastCowries", OduOp::CastCowries);

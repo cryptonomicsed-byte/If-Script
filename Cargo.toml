@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 license = "MIT"
 description = "IfáScript Ω — Divination as Divine Computation"
-repository = "https://github.com/YOUR_USERNAME/ifascript"
+repository = "https://github.com/Bino-Elgua/Ifascript"
 keywords = ["ifá", "esoteric", "vm", "yoruba", "divination"]
 categories = ["compilers-interpreters", "no-std"]
 

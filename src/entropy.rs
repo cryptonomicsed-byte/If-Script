@@ -18,6 +18,7 @@ pub struct CowrieOracle {
     source: EntropySource,
     buffer: VecDeque<u32>,
     ritual_seed: [u8; 32],
+    fallback_rng: ChaCha20Rng,
     last_fetch: Instant,
     fetch_interval: Duration,
     client: Client,
@@ -26,12 +27,14 @@ pub struct CowrieOracle {
 impl CowrieOracle {
     pub fn new(ritual_intent: &str) -> Self {
         let seed: [u8; 32] = Sha256::digest(ritual_intent.as_bytes()).into();
+        let fallback_rng = ChaCha20Rng::from_seed(seed);
         let client = Client::new();
-        
+
         Self {
             source: EntropySource::Atmospheric(NISTBeacon),
             buffer: VecDeque::new(),
             ritual_seed: seed,
+            fallback_rng,
             last_fetch: Instant::now() - Duration::from_secs(61),
             fetch_interval: Duration::from_secs(60),
             client,
@@ -56,14 +59,14 @@ impl CowrieOracle {
                     self.fallback_u32()
                 }
             }
-            EntropySource::Fallback(rng) => rng.next_u32() ^ self.hash_seed(),
+            EntropySource::Fallback(_) => self.fallback_u32() ^ self.hash_seed(),
         }
     }
 
     fn fallback_u32(&mut self) -> u32 {
-        let mut fallback = ChaCha20Rng::from_seed(self.ritual_seed);
-        fallback.next_u32()
+        self.fallback_rng.next_u32()
     }
+
 
     fn refill_from_beacon(&mut self) {
         if let Ok(resp) = self.client.get("https://beacon.nist.gov/beacon/2.0/chain/1/pulse/last").send() {

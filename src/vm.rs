@@ -142,7 +142,16 @@ fn find_pow_nonce(difficulty: u32) -> u64 {
     while nonce < max_attempts {
         let hash_input = format!("ifascript_ebo_{}", nonce);
         let hash = Sha256::digest(hash_input.as_bytes());
-        let leading_zeros = hash[0] as u32;
+        
+        let mut leading_zeros = 0;
+        for &byte in hash.as_slice() {
+            if byte == 0 {
+                leading_zeros += 8;
+            } else {
+                leading_zeros += byte.leading_zeros();
+                break;
+            }
+        }
 
         if leading_zeros >= difficulty { 
             return nonce; 

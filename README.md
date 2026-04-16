@@ -1,6 +1,6 @@
-![Version](https://img.shields.io/badge/version-v0.1.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Layer](https://img.shields.io/badge/layer-VM-purple)
+[![Version](https://img.shields.io/badge/version-v0.1.0-blue)](https://github.com/Bino-Elgua/Ifascript)
+[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/Bino-Elgua/Ifascript)
+[![Layer](https://img.shields.io/badge/layer-VM-purple)](https://github.com/Bino-Elgua/Ifascript)
 # IfáScript Ω — Ọ̀rọ̀-Ọ̀run's Child
 
 **Divination as Divine Computation**
@@ -25,10 +25,23 @@ This is sacred technology — co-create, never commodify.
 ## Install & Run
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ifascript.git
+git clone https://github.com/Bino-Elgua/Ifascript.git
 cd ifascript
 cargo run --example ase
 ```
+
+## Current Status
+
+- VM with stack-based opcode execution: complete
+- Ebo ethical exception handling: complete  
+- NIST Beacon entropy oracle: complete
+- Cowrie cast entropy: complete
+- Odù opcode table: 9 of 256 defined (expansion in progress)
+
+## Known Issues
+
+- Odu Ifá verse integration pending (Odù 1-8 verses drafted)
+- NIST Beacon connectivity requires blocking I/O (async migration planned)
 
 ---
 
@@ -36,7 +49,7 @@ cargo run --example ase
 
 ## The Entropy Engine
 
-Ifascript serves as the entropy engine for the Technosis ecosystem. It translates the 256 sacred Odu of the Ifá divination system into a stream of cryptographic entropy, providing a foundational source of unpredictable, meaningful data for agent birth and decision-making.
+IfáScript is the entropy engine for the Technosis/Swibe sovereign AI ecosystem, feeding into **organism-core**. It translates the 256 sacred Odu of the Ifá divination system into a stream of cryptographic entropy, providing a foundational source of unpredictable, meaningful data for agent birth and decision-making.
 
 
 ---

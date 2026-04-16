@@ -20,3 +20,4 @@ fn test_swap() {
     vm.execute(vec!["Èjì Ogbè", "Ọ̀bàrà", "Ọ̀dí Méjì"]);
     assert_eq!(vm.stack, vec![0, 1]);
 }
+
