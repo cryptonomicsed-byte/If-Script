@@ -121,7 +121,9 @@ impl IfaVM {
     pub fn execute(&mut self, program: Vec<&str>) {
         use crate::odu::ODU_TABLE;
         for odu_name in program {
-            if self.halted { break; }
+            if self.halted {
+                break;
+            }
             if let Some(op) = ODU_TABLE.get(odu_name) {
                 op.clone().execute(self);
             }
