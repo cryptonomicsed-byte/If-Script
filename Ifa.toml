@@ -1,0 +1,49 @@
+# Ifa.toml — IfáScript Package Manifest (example / spec reference)
+# This file defines a ritual package for the omo-koda ecosystem
+
+[package]
+name = "thunder-justice-ritual"
+version = "1.0.0"
+authors = ["Bínò ÈL Guà <crown@omo-koda.org>"]
+description = "Ṣàngó-gated governance ritual with on-chain receipts"
+license = "MIT"
+
+# Minimum IfáScript runtime version required
+ifascript = "0.2"
+
+# Base Odù table compatibility (256 = Tier 1 human-scale)
+odu_compatibility = "256"
+
+[dependencies]
+# Ecosystem crates (resolved via cargo when protocol-core is published)
+# zangbeto   = { git = "https://github.com/omo-koda/Zangbeto" }
+# bipon39    = { git = "https://github.com/omo-koda/Bipon39-Rust" }
+
+[ritual]
+# Primary Odù archetype for this package
+primary_odu = "OgbeMeji"
+
+# Required Hermetic gates (enforced at invocation time)
+hermetic_gates = ["cause_effect", "mentalism", "rhythm"]
+
+# Temporal constraints
+sabbath_respect = true
+
+# Minimum witness quorum for governance rituals
+witness_quorum = 3
+
+# Oracle endpoint for witness verification
+oracle = "Òrúnmìlà"
+
+# On-chain anchoring network for receipts
+anchor_network = "arweave"
+
+[build]
+# Compilation targets (WASM first, OSOVM second)
+targets = ["wasm"]
+optimize = false
+
+[audit]
+# Zàngbétò audit configuration
+auto_audit = true
+quarantine_on_violation = true

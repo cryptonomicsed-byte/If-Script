@@ -1,0 +1,35 @@
+// IfáScript Ω — Minimal Grammar v0.1
+// Ògún's Forge: Pest format, parses `invoke` statements
+// Path: src/compiler/grammar.pest
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" | "//" ~ (!"\n" ~ ANY)* }
+
+// === Identifiers and literals ===
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+number = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+string = ${ "\"" ~ (("\\\"") | (!("\"") ~ ANY))* ~ "\"" }
+
+// === Hermetic principles — non-silent so they produce pairs ===
+principle = {
+    "mentalism" | "correspondence" | "vibration" |
+    "polarity" | "rhythm" | "cause_effect" | "gender"
+}
+
+// === Gate spec: principle:threshold ===
+gate_spec = { principle ~ ":" ~ number }
+
+// === Sabbath spec ===
+sabbath_spec = { "Saturday" | "any" | string }
+
+// === Invocation statement ===
+invocation = {
+    "invoke" ~ ident ~
+    ("with" ~ gate_spec)? ~
+    ("witness" ~ number)? ~
+    ("settle" ~ sabbath_spec)? ~
+    ";"
+}
+
+// === Program: zero or more invocations ===
+program = { SOI ~ invocation* ~ EOI }

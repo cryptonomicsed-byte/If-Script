@@ -1,6 +1,6 @@
 [package]
 name = "ifascript"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "IfáScript Ω — Divination as Divine Computation"
@@ -14,6 +14,10 @@ crate-type = ["cdylib", "lib"]  # for future WASM
 [[bin]]
 name = "cast_state"
 path = "src/bin/cast_state.rs"
+
+[[bin]]
+name = "ifa"
+path = "src/bin/ifa.rs"
 
 [dependencies]
 lazy_static = "1.4"
@@ -29,5 +33,7 @@ chrono = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"
 log = "0.4"
 clap = { version = "4.4", features = ["derive"] }
+pest = "2.7"
+pest_derive = "2.7"
 
 [dev-dependencies]
