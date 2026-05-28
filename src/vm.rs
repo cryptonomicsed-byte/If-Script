@@ -2,8 +2,28 @@ use std::thread;
 use sha2::{Digest, Sha256};
 use crate::ebo::{EboHistory, EboTrigger, Ebo};
 use crate::entropy::CowrieOracle;
+use crate::odu::{get_odu, ActionVessel, Odu};
 
 pub type Stack = Vec<i32>;
+
+/// Output of a cowrie cast for low-tier agents.
+///
+/// Low-tier agents receive only this struct — the vessel, the universal name,
+/// and the prescription steps.  Full Odù metadata (archetype, orisha, taboos)
+/// is reserved for Èṣù/Hive-tier LARQL synthesis via `cast_odu_full()`.
+#[derive(Debug)]
+pub struct CastResult {
+    /// Raw Odù index (0–255). Top nibble = wave/vessel, bottom nibble = modifier.
+    pub index: u8,
+    /// Which of the 16 Action Vessels governs this cast.
+    pub vessel: ActionVessel,
+    /// Canonical file domain for this vessel (e.g. `"genesis.md"`).
+    pub file_domain: &'static str,
+    /// Universal English name of the cast Odù.
+    pub universal_name: &'static str,
+    /// Ordered prescription steps for this Odù (from the Digital Calabash schema).
+    pub prescriptions: &'static [&'static str],
+}
 
 #[derive(Clone)]
 pub enum OduOp {
@@ -117,6 +137,44 @@ impl IfaVM {
             halted: false,
         }
     }
+
+    // ── Digital Calabash dispatch ─────────────────────────────────────────
+
+    /// **Low-tier cast** — throws cowries, returns vessel + prescriptions only.
+    ///
+    /// Use this for any agent that should receive instructions without access
+    /// to the full Odù corpus. The `CastResult` contains everything needed to
+    /// act on the cast: which file domain to write, which steps to follow.
+    pub fn cast_odu(&mut self) -> CastResult {
+        let index = self.oracle.cast_cowries() as u8;
+        let odu = get_odu(index);
+        CastResult {
+            index,
+            vessel: odu.vessel,
+            file_domain: odu.vessel.file_domain(),
+            universal_name: odu.universal_name,
+            prescriptions: odu.prescriptions,
+        }
+    }
+
+    /// **Hive/Èṣù-tier cast** — returns the full static Odù record.
+    ///
+    /// Only call from the LARQL synthesis layer. Low-tier agents should use
+    /// `cast_odu()` instead.
+    pub fn cast_odu_full(&mut self) -> &'static Odu {
+        let index = self.oracle.cast_cowries() as u8;
+        get_odu(index)
+    }
+
+    /// Look up any Odù by Yorùbá compound name or universal English name.
+    ///
+    /// Returns `None` for unrecognised names. Suitable for LARQL `DESCRIBE`
+    /// queries and named-cast operations.
+    pub fn lookup_odu(name: &str) -> Option<&'static Odu> {
+        crate::odu::lookup_by_name(name)
+    }
+
+    // ── Legacy program execution (backward-compatible) ────────────────────
 
     pub fn execute(&mut self, program: Vec<&str>) {
         use crate::odu::ODU_TABLE;

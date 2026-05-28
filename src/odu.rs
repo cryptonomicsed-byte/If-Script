@@ -156,6 +156,12 @@ pub fn get_odu_by_binary(binary: u8) -> &'static Odu {
     &ODU_SET[binary as usize]
 }
 
+/// Search by Yorùbá compound name or universal English name.
+/// Returns `None` if no entry matches.
+pub fn lookup_by_name(name: &str) -> Option<&'static Odu> {
+    ODU_SET.iter().find(|o| o.name == name || o.universal_name == name)
+}
+
 pub static ODU_SET: [Odu; 256] = [
 
     // ────────────────────────────────────────────────
