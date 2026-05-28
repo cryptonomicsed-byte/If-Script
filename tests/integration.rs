@@ -1,4 +1,4 @@
-use ifascript::{IfaVM, ActionVessel, get_odu, lookup_by_name};
+use ifascript::{IfaVM, ActionVessel, get_odu, lookup_by_name, get_cosmogram};
 
 // ── Legacy program execution (backward-compatible) ────────────────────────
 
@@ -116,4 +116,48 @@ fn test_low_tier_cast_does_not_expose_taboos_or_orisha() {
     // prescriptions field exists and is a non-empty slice
     // (all 256 entries have at least one prescription)
     assert!(!result.prescriptions.is_empty());
+}
+
+// ── Cosmogram corpus tests ────────────────────────────────────────────────
+
+#[test]
+fn test_cosmogram_index_zero_has_bino_el_gua() {
+    let entry = get_cosmogram(0);
+    assert_eq!(entry.odu_index, 0);
+    assert!(
+        entry.ese_myth.contains("Bínò ÈL Guà"),
+        "Entry 0 ese_myth must contain 'Bínò ÈL Guà'"
+    );
+}
+
+#[test]
+fn test_cosmogram_index_zero_is_genesis_genesis() {
+    let entry = get_cosmogram(0);
+    assert_eq!(entry.domain, "Genesis × Genesis");
+    assert_eq!(entry.orisha_primary, "Ọ̀rúnmìlà");
+    assert_eq!(entry.tier, 1);
+    assert_eq!(entry.hermetic_gate, "1.1");
+}
+
+#[test]
+fn test_cosmogram_index_255_is_ofun_meji() {
+    let entry = get_cosmogram(255);
+    assert_eq!(entry.odu_index, 255);
+    assert!(entry.has_data(), "index 255 should have cosmogram data");
+    assert_eq!(entry.domain, "Temporal × Temporal");
+    assert_eq!(entry.hermetic_gate, "16.16");
+}
+
+#[test]
+fn test_cosmogram_123_entries_have_data() {
+    let count = (0u8..=255).filter(|&i| get_cosmogram(i).has_data()).count();
+    assert_eq!(count, 123, "expected exactly 123 entries with ese_myth data");
+}
+
+#[test]
+fn test_cosmogram_all_indices_consistent() {
+    for i in 0u8..=255 {
+        let entry = get_cosmogram(i);
+        assert_eq!(entry.odu_index, i, "odu_index field must match array position {i}");
+    }
 }
