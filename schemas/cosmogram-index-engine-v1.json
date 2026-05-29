@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://omo-koda.org/schemas/cosmogram-index-engine/v1",
+  "title": "Cosmogram Index Engine - Universal State Map",
+  "description": "Canonical coordinate system for recursive symbolic states across all 7 tiers (256 → 65536)",
+  "type": "object",
+  "required": ["tier", "odu_id", "mode_id", "axes", "orisha_vector", "hermetic_gates", "rhythm_code", "memory_tier", "access_class"],
+  "properties": {
+    "tier": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 7,
+      "description": "Cosmological layer: 1=256 (Human), 7=65536 (Cosmic Machine)"
+    },
+    "odu_id": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "Primary archetype coordinate within tier"
+    },
+    "mode_id": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Expansion/interpretation mode for this state"
+    },
+    "axes": {
+      "type": "object",
+      "description": "49-facet resonance map",
+      "properties": {
+        "emotion": {"type": "number", "minimum": -1, "maximum": 1},
+        "wealth": {"type": "string", "enum": ["relational", "material", "energetic", "civic", "cosmic"]},
+        "chakra": {"type": "string", "enum": ["root", "sacral", "solar", "heart", "throat", "third_eye", "crown"]},
+        "astro": {
+          "type": "object",
+          "properties": {
+            "planet": {"type": "string"},
+            "phase": {"type": "string"}
+          }
+        },
+        "frequency": {"type": "number", "minimum": 0}
+      },
+      "additionalProperties": {"type": "number"}
+    },
+    "orisha_vector": {
+      "type": "object",
+      "properties": {
+        "Esu":     {"type": "number", "minimum": 0, "maximum": 1},
+        "Ogun":    {"type": "number", "minimum": 0, "maximum": 1},
+        "Oya":     {"type": "number", "minimum": 0, "maximum": 1},
+        "Obatala": {"type": "number", "minimum": 0, "maximum": 1},
+        "Oshun":   {"type": "number", "minimum": 0, "maximum": 1},
+        "Shango":  {"type": "number", "minimum": 0, "maximum": 1},
+        "Yemoja":  {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "required": ["Esu", "Ogun", "Oya", "Obatala", "Oshun", "Shango", "Yemoja"]
+    },
+    "hermetic_gates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "principle": {
+            "type": "string",
+            "enum": ["mentalism", "correspondence", "vibration", "polarity", "rhythm", "cause_effect", "gender"]
+          },
+          "threshold": {"type": "number", "minimum": 0, "maximum": 1},
+          "enforcement": {"type": "string", "enum": ["soft", "hard", "audit_only"]}
+        },
+        "required": ["principle", "threshold", "enforcement"]
+      },
+      "maxItems": 7
+    },
+    "rhythm_code": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "string",
+          "enum": ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+        },
+        "orisha_day": {"type": "string"},
+        "phase": {
+          "type": "string",
+          "enum": ["seed", "grow", "flow", "balance", "manifest", "release", "renew"]
+        },
+        "window_open": {"type": "boolean"}
+      }
+    },
+    "memory_tier": {
+      "type": "string",
+      "enum": ["tier_0_existential", "tier_1_deep", "tier_2_operational", "tier_3_contributable"],
+      "description": "Soul-class memory access level (enforced at runtime)"
+    },
+    "access_class": {
+      "type": "string",
+      "enum": ["public", "sealed", "council", "machine_only"],
+      "description": "Who may read/act on this state"
+    },
+    "governance": {
+      "type": "object",
+      "properties": {
+        "consensus_level": {
+          "type": "string",
+          "enum": ["individual", "swarm", "council", "canonical"]
+        },
+        "zk_proof_required": {"type": "boolean"},
+        "vote_weight": {"type": "number", "minimum": 0}
+      }
+    },
+    "zk_profile": {
+      "type": "object",
+      "description": "Privacy-preserving symbolic affinity (NO medical/biological claims)",
+      "properties": {
+        "resonance_class": {"type": "string"},
+        "affinity_tags": {"type": "array", "items": {"type": "string"}},
+        "proof_hash": {
+          "type": "string",
+          "pattern": "^0x[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "geo_anchor": {
+      "type": "object",
+      "properties": {
+        "latitude":   {"type": "number", "minimum": -90,  "maximum": 90},
+        "longitude":  {"type": "number", "minimum": -180, "maximum": 180},
+        "sacred_site":{"type": "string"}
+      }
+    },
+    "astro_anchor": {
+      "type": "object",
+      "properties": {
+        "lunar_phase":     {"type": "number", "minimum": 0, "maximum": 1},
+        "solar_longitude": {"type": "number"},
+        "planetary_hour":  {"type": "string"}
+      }
+    },
+    "threat_profile": {
+      "type": "object",
+      "properties": {
+        "zangbeto_audit": {
+          "type": "string",
+          "enum": ["clean", "review", "quarantine"]
+        },
+        "last_diagnostic": {"type": "string", "format": "date-time"},
+        "repair_actions":  {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created":        {"type": "string", "format": "date-time"},
+        "version":        {"type": "string"},
+        "canonical_hash": {"type": "string"},
+        "ese_myth":       {"type": "string"},
+        "prescriptions":  {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  },
+  "additionalProperties": false
+}

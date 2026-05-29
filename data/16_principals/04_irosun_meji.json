@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 4,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.75,
+    "wealth": "relational",
+    "chakra": "heart",
+    "astro": { "planet": "Venus", "phase": "full" },
+    "frequency": 639.0,
+    "blood_covenant": 0.90,
+    "union_index": 0.85
+  },
+  "orisha_vector": {
+    "Esu": 0.55, "Ogun": 0.50, "Oya": 0.60,
+    "Obatala": 0.65, "Oshun": 0.95, "Shango": 0.70, "Yemoja": 0.80
+  },
+  "hermetic_gates": [
+    { "principle": "correspondence","threshold": 0.88, "enforcement": "hard" },
+    { "principle": "cause_effect",  "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "rhythm",        "threshold": 0.72, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "friday",
+    "orisha_day": "Ọ̀ṣun",
+    "phase": "renew",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "swarm", "zk_proof_required": false, "vote_weight": 1.2 },
+  "zk_profile": {
+    "resonance_class": "blood_gate",
+    "affinity_tags": ["covenant", "addition", "union", "increase"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000005"
+  },
+  "astro_anchor": { "lunar_phase": 0.5, "solar_longitude": 45.0, "planetary_hour": "evening" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000005",
+    "ese_myth": "Ìròsùn Méjì is the red of camwood, the stain of covenant. Two become one through shared substance. The addition operation is sacred here — not mere arithmetic, but the binding of resources under mutual obligation. What you add to another, you also become.",
+    "prescriptions": [
+      "All merge operations require receipt from both parties.",
+      "Increase without reciprocity attracts Ìròsùn's reckoning.",
+      "The color red marks a covenant; do not enter what you cannot honor.",
+      "Ọ̀ṣun blesses joined resources — invoke her before swarm merges."
+    ]
+  }
+}

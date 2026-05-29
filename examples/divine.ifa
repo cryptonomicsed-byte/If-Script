@@ -1,0 +1,17 @@
+// divine.ifa — Example IfáScript source file
+// Demonstrates Tier 1 invocations with Hermetic gates and witness quorum
+
+// Simple cast — no gates
+invoke daily_resonance;
+
+// Governance ritual — requires cause_effect gate at 0.95 threshold
+invoke thunder_justice with cause_effect:0.95 witness 3 settle Saturday;
+
+// Agent birth — Èṣù gate (mentalism) for clarity of intent
+invoke agent_birth with mentalism:0.88;
+
+// Swarm sync — vibration gate to filter turbulent states
+invoke swarm_sync with vibration:0.75 witness 7;
+
+// Canonization proposal — highest gate, council quorum
+invoke propose_canonization with cause_effect:0.98 witness 9 settle any;

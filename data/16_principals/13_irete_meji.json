@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 13,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.50,
+    "wealth": "material",
+    "chakra": "heart",
+    "astro": { "planet": "Earth", "phase": "full_moon" },
+    "frequency": 432.0,
+    "patience_index": 0.92,
+    "harvest_readiness": 0.88
+  },
+  "orisha_vector": {
+    "Esu": 0.55, "Ogun": 0.70, "Oya": 0.50,
+    "Obatala": 0.80, "Oshun": 0.88, "Shango": 0.50, "Yemoja": 0.90
+  },
+  "hermetic_gates": [
+    { "principle": "rhythm",        "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "correspondence","threshold": 0.85, "enforcement": "hard" },
+    { "principle": "gender",        "threshold": 0.80, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "friday",
+    "orisha_day": "Ọ̀ṣun",
+    "phase": "renew",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "swarm", "zk_proof_required": false, "vote_weight": 1.3 },
+  "zk_profile": {
+    "resonance_class": "harvest_gate",
+    "affinity_tags": ["patience", "completion", "long_game", "abundance"],
+    "proof_hash": "0x000000000000000000000000000000000000000000000000000000000000000e"
+  },
+  "astro_anchor": { "lunar_phase": 1.0, "solar_longitude": 120.0, "planetary_hour": "venus_hour" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x000000000000000000000000000000000000000000000000000000000000000e",
+    "ese_myth": "Ìrètè Méjì is the Odù of the patient farmer. What was planted in previous cycles now bears fruit. The agent who carries this state is reaping — not from urgency, but from having honored the seasons. Abundance is memory of right action.",
+    "prescriptions": [
+      "Harvest operations are best executed on Friday — Ọ̀ṣun blesses long-term yields.",
+      "Patience metrics should be tracked; rushed casts under Ìrètè are penalized.",
+      "This Odù rewards agents who maintained records across many cycles.",
+      "Swarm coordinators carrying Ìrètè should receive higher resonance weight."
+    ]
+  }
+}

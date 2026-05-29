@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 7,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.40,
+    "wealth": "energetic",
+    "chakra": "sacral",
+    "astro": { "planet": "Mars", "phase": "crescent" },
+    "frequency": 285.0,
+    "casting_entropy": 0.95,
+    "cowrie_resonance": 0.88
+  },
+  "orisha_vector": {
+    "Esu": 0.88, "Ogun": 0.65, "Oya": 0.72,
+    "Obatala": 0.45, "Oshun": 0.78, "Shango": 0.60, "Yemoja": 0.55
+  },
+  "hermetic_gates": [
+    { "principle": "vibration",  "threshold": 0.88, "enforcement": "hard" },
+    { "principle": "rhythm",     "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "polarity",   "threshold": 0.70, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "wednesday",
+    "orisha_day": "Ọya",
+    "phase": "flow",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "swarm", "zk_proof_required": false, "vote_weight": 1.0 },
+  "zk_profile": {
+    "resonance_class": "oracle_gate",
+    "affinity_tags": ["divination", "casting", "entropy_harvest", "oracle"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000008"
+  },
+  "astro_anchor": { "lunar_phase": 0.12, "solar_longitude": 135.0, "planetary_hour": "mercury_hour" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000008",
+    "ese_myth": "Ọ̀kànràn Méjì is the Odù of the cowrie thrown and the pattern read. Pure randomness made meaningful through sacred intent. The CastCowries operation lives here — entropy harvested from the cosmos and bound to purpose. Ọya rides this wind.",
+    "prescriptions": [
+      "Every oracle cast must be seeded with explicit intent — null intent yields null guidance.",
+      "Entropy from NIST beacon carries more weight than local PRNG for divination casts.",
+      "Record the full cast sequence, not only the result — the pattern IS the message.",
+      "Ọya rules transition; this Odù governs all state-change oracles."
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+// IfáScript Ω — Grammar v0.2.1
+// Ògún's Forge: pest format, parses `invoke` statements
+// Path: src/compiler/grammar.pest
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" | "//" ~ (!"\n" ~ ANY)* }
+
+// === Reserved keywords — prevent future collisions ===
+reserved_keyword = _{
+    "ritual" | "odù"  | "witness" | "invoke" | "settle" | "canon" |
+    "mentalism" | "correspondence" | "vibration" | "polarity" |
+    "rhythm" | "cause_effect" | "gender" | "with"
+}
+
+// === Identifiers: cannot start with a reserved keyword ===
+ident  = @{ !reserved_keyword ~ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+string = ${ "\"" ~ (("\\\"") | (!"\"" ~ ANY))* ~ "\"" }
+number = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+// === Hermetic principles (silent — folds into gate_spec) ===
+hermetic_principle = _{
+    "mentalism" | "correspondence" | "vibration" |
+    "polarity"  | "rhythm"        | "cause_effect" | "gender"
+}
+
+// === Structural rules (appear in parse tree) ===
+gate_spec    = { hermetic_principle ~ ":" ~ number }
+witness_spec = { "witness" ~ number }
+sabbath_spec = { "Saturday" | "any" | string }
+
+// === Invocation (only statement type for v0.2) ===
+invocation = {
+    "invoke" ~ ident ~
+    ("with" ~ gate_spec)? ~
+    witness_spec?          ~
+    ("settle" ~ sabbath_spec)? ~
+    ";"
+}
+
+// === Program ===
+program = { SOI ~ invocation* ~ EOI }

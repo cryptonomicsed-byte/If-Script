@@ -1,0 +1,115 @@
+(* IfáScript Ω — Formal Grammar v0.1 *)
+(* Ògún's Forge: Cosmology-native programming language *)
+(* Notation: EBNF — ISO/IEC 14977                       *)
+
+(* === Lexical Elements === *)
+
+letter          = "A"…"Z" | "a"…"z" ;
+digit           = "0"…"9" ;
+ident_char      = letter | digit | "_" ;
+IDENT           = letter , { ident_char } ;
+ODU_NAME        = "A"…"Z" , { "a"…"z" } ;   (* Ogbe, Oyeku, Iwori, … *)
+NUMBER          = digit , { digit } , [ "." , { digit } ] ;
+STRING          = '"' , { ? any char except '"' ? } , '"' ;
+COMMENT_LINE    = "//" , { ? any char except newline ? } ;
+COMMENT_BLOCK   = "/*" , { ? any char ? } , "*/" ;
+WHITESPACE      = ? space | tab | newline ? ;
+
+
+(* === Program Structure === *)
+
+program         = { import_stmt } , { definition } , { invocation } ;
+
+
+(* === Imports === *)
+
+import_stmt     = "import" , STRING , "as" , IDENT , ";" ;
+
+
+(* === Definitions === *)
+
+definition      = odù_def | ritual_def | witness_def ;
+
+odù_def         = "odù" , ODU_NAME , "<" , IDENT , ">" ,
+                  "{" , { prescription_stmt } , "}" ;
+
+ritual_def      = "ritual" , IDENT , "(" , [ param_list ] , ")" ,
+                  [ "@" , attribute_list ] ,
+                  "{" , { statement } , "}" ;
+
+witness_def     = "witness" , IDENT , ":" , NUMBER ,
+                  "@" , STRING ,    (* oracle endpoint *)
+                  "@" , STRING ,    (* anchor network  *)
+                  ";" ;
+
+param_list      = param , { "," , param } ;
+param           = IDENT , ":" , type_expr ;
+
+type_expr       = primitive_type | odu_type | generic_type ;
+primitive_type  = "u8" | "u16" | "u32" | "u64" | "bool" | "string" ;
+odu_type        = ODU_NAME , "<" , IDENT , ">" ;
+generic_type    = IDENT , "<" , IDENT , ">" ;
+
+attribute_list  = attribute , { "," , attribute } ;
+attribute       = IDENT , [ "(" , literal , ")" ] ;
+
+
+(* === Invocations === *)
+
+invocation      = "invoke" , IDENT ,
+                  [ "with"    , gate_spec    ] ,
+                  [ "witness" , NUMBER       ] ,
+                  [ "settle"  , sabbath_spec ] ,
+                  ";" ;
+
+gate_spec       = hermetic_principle , ":" , NUMBER ;
+
+hermetic_principle
+                = "mentalism"
+                | "correspondence"
+                | "vibration"
+                | "polarity"
+                | "rhythm"
+                | "cause_effect"
+                | "gender" ;
+
+sabbath_spec    = "Saturday" | "any" | STRING ;
+
+
+(* === Statements === *)
+
+statement       = prescription_stmt
+                | let_stmt
+                | if_stmt
+                | return_stmt ;
+
+prescription_stmt
+                = "prescribe" , IDENT , [ "(" , arg_list , ")" ] , ";" ;
+
+let_stmt        = "let" , IDENT , ":" , type_expr , "=" , expression , ";" ;
+
+if_stmt         = "if" , expression , block , [ "else" , block ] ;
+
+return_stmt     = "return" , [ expression ] , ";" ;
+
+block           = "{" , { statement } , "}" ;
+
+arg_list        = literal , { "," , literal } ;
+
+
+(* === Expressions === *)
+
+expression      = literal
+                | IDENT
+                | odu_literal
+                | binary_expr
+                | call_expr ;
+
+odu_literal     = ODU_NAME , [ "<" , literal , ">" ] ;
+
+binary_expr     = expression , binary_op , expression ;
+binary_op       = "+" | "-" | "*" | "/" | "==" | "!=" | "<" | ">" ;
+
+call_expr       = IDENT , "(" , [ arg_list ] , ")" ;
+
+literal         = STRING | NUMBER | "true" | "false" | ODU_NAME ;

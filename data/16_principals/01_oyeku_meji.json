@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 1,
+  "mode_id": 0,
+  "axes": {
+    "emotion": -0.60,
+    "wealth": "cosmic",
+    "chakra": "root",
+    "astro": { "planet": "Saturn", "phase": "midnight" },
+    "frequency": 174.0,
+    "void_index": 1.0,
+    "transition_depth": 0.9
+  },
+  "orisha_vector": {
+    "Esu": 0.40, "Ogun": 0.30, "Oya": 0.98,
+    "Obatala": 0.85, "Oshun": 0.20, "Shango": 0.35, "Yemoja": 0.60
+  },
+  "hermetic_gates": [
+    { "principle": "polarity",   "threshold": 0.80, "enforcement": "hard" },
+    { "principle": "rhythm",     "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "vibration",  "threshold": 0.75, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "saturday",
+    "orisha_day": "Yemọja",
+    "phase": "release",
+    "window_open": false
+  },
+  "memory_tier": "tier_2_operational",
+  "access_class": "sealed",
+  "governance": { "consensus_level": "council", "zk_proof_required": true, "vote_weight": 2.0 },
+  "zk_profile": {
+    "resonance_class": "void_gate",
+    "affinity_tags": ["transition", "dissolution", "ancestor_bridge"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000002"
+  },
+  "astro_anchor": { "lunar_phase": 0.0, "solar_longitude": 180.0, "planetary_hour": "midnight" },
+  "threat_profile": { "zangbeto_audit": "review", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": ["Invoke Ọya before accessing"] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000002",
+    "ese_myth": "Òyèkú Méjì divined for Death when Death was traveling to the great market. Death was instructed to honor Ọya and to never open doors that cannot be closed. This is the Odù of necessary endings, of the void before rebirth, of the ancestor realm that underlies all computation. Fear it not — it is the silence between notes.",
+    "prescriptions": [
+      "Do not invoke this Odù carelessly — it governs irreversible state transitions.",
+      "All deprecated resources must be formally retired, not merely abandoned.",
+      "Honor the end of each cycle with a brief silence before beginning the next.",
+      "Tier 0 existential data may only be accessed under Òyèkú protocols."
+    ]
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 5,
+  "mode_id": 0,
+  "axes": {
+    "emotion": -0.20,
+    "wealth": "energetic",
+    "chakra": "solar",
+    "astro": { "planet": "Uranus", "phase": "opposition" },
+    "frequency": 417.0,
+    "chaos_index": 0.82,
+    "lightning_potential": 0.88
+  },
+  "orisha_vector": {
+    "Esu": 0.92, "Ogun": 0.75, "Oya": 0.80,
+    "Obatala": 0.30, "Oshun": 0.40, "Shango": 0.88, "Yemoja": 0.35
+  },
+  "hermetic_gates": [
+    { "principle": "vibration",  "threshold": 0.80, "enforcement": "hard" },
+    { "principle": "polarity",   "threshold": 0.75, "enforcement": "soft" },
+    { "principle": "rhythm",     "threshold": 0.60, "enforcement": "audit_only" }
+  ],
+  "rhythm_code": {
+    "day": "tuesday",
+    "orisha_day": "Ògún",
+    "phase": "grow",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "individual", "zk_proof_required": false, "vote_weight": 0.8 },
+  "zk_profile": {
+    "resonance_class": "chaos_gate",
+    "affinity_tags": ["disruption", "subtraction", "pruning", "lightning"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000006"
+  },
+  "astro_anchor": { "lunar_phase": 0.6, "solar_longitude": 225.0, "planetary_hour": "storm" },
+  "threat_profile": { "zangbeto_audit": "review", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": ["Monitor entropy levels"] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000006",
+    "ese_myth": "Òwónrín Méjì is the Odù of holy chaos — the trickster who breaks patterns so new ones may emerge. The subtraction operation here is surgical: remove what no longer serves, clear debt, prune dead branches. Ẹṣù laughs because what seems like loss is often liberation.",
+    "prescriptions": [
+      "Subtraction of resources requires careful audit — track the delta.",
+      "Chaos is fertile; do not suppress Òwónrín energy, channel it.",
+      "Document everything pruned — it may return as a ghost in future cycles.",
+      "Invoke this Odù when legacy code must be removed without mercy."
+    ]
+  }
+}

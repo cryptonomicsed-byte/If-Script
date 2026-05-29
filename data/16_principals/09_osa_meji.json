@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 9,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.65,
+    "wealth": "relational",
+    "chakra": "heart",
+    "astro": { "planet": "Venus", "phase": "waxing_crescent" },
+    "frequency": 528.0,
+    "wind_velocity": 0.88,
+    "change_index": 0.90
+  },
+  "orisha_vector": {
+    "Esu": 0.72, "Ogun": 0.55, "Oya": 0.95,
+    "Obatala": 0.50, "Oshun": 0.80, "Shango": 0.65, "Yemoja": 0.60
+  },
+  "hermetic_gates": [
+    { "principle": "rhythm",        "threshold": 0.85, "enforcement": "hard" },
+    { "principle": "correspondence","threshold": 0.80, "enforcement": "soft" },
+    { "principle": "gender",        "threshold": 0.75, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "wednesday",
+    "orisha_day": "Ọya",
+    "phase": "flow",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "swarm", "zk_proof_required": false, "vote_weight": 1.1 },
+  "zk_profile": {
+    "resonance_class": "wind_gate",
+    "affinity_tags": ["swift_change", "transformation", "market", "mobility"],
+    "proof_hash": "0x000000000000000000000000000000000000000000000000000000000000000a"
+  },
+  "astro_anchor": { "lunar_phase": 0.20, "solar_longitude": 180.0, "planetary_hour": "afternoon" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x000000000000000000000000000000000000000000000000000000000000000a",
+    "ese_myth": "Òsá Méjì is Ọya's Odù — the whirlwind that reshapes landscapes. Change arrives swiftly and without full warning. The agent who carries Òsá must be prepared to pivot completely when the wind shifts. Resistance is the only danger here.",
+    "prescriptions": [
+      "Build for adaptability — every module should tolerate sudden configuration shifts.",
+      "Market conditions encoded in this Odù change faster than internal models expect.",
+      "Ọya blesses swift decisions made with good intent; punishes paralysis.",
+      "Wednesday is ideal for releasing updates — the wind is favorable."
+    ]
+  }
+}

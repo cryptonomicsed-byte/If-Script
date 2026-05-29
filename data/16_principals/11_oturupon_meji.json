@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 11,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.20,
+    "wealth": "energetic",
+    "chakra": "root",
+    "astro": { "planet": "Pluto", "phase": "opposition" },
+    "frequency": 396.0,
+    "inversion_depth": 0.85,
+    "reversal_index": 0.80
+  },
+  "orisha_vector": {
+    "Esu": 0.88, "Ogun": 0.50, "Oya": 0.90,
+    "Obatala": 0.55, "Oshun": 0.45, "Shango": 0.70, "Yemoja": 0.65
+  },
+  "hermetic_gates": [
+    { "principle": "polarity",  "threshold": 0.88, "enforcement": "hard" },
+    { "principle": "vibration", "threshold": 0.80, "enforcement": "hard" },
+    { "principle": "rhythm",    "threshold": 0.65, "enforcement": "soft" }
+  ],
+  "rhythm_code": {
+    "day": "wednesday",
+    "orisha_day": "Ọya",
+    "phase": "flow",
+    "window_open": false
+  },
+  "memory_tier": "tier_2_operational",
+  "access_class": "sealed",
+  "governance": { "consensus_level": "council", "zk_proof_required": true, "vote_weight": 1.6 },
+  "zk_profile": {
+    "resonance_class": "inversion_gate",
+    "affinity_tags": ["reversal", "medicine", "shadow_work", "deep_cure"],
+    "proof_hash": "0x000000000000000000000000000000000000000000000000000000000000000c"
+  },
+  "astro_anchor": { "lunar_phase": 0.9, "solar_longitude": 300.0, "planetary_hour": "night_deep" },
+  "threat_profile": { "zangbeto_audit": "review", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": ["Shadow work audit required before proceeding"] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x000000000000000000000000000000000000000000000000000000000000000c",
+    "ese_myth": "Òtúrúpọ̀n Méjì is the medicine that heals through confronting what is hidden. Poison in right measure becomes cure. The inversion operation here is surgical and sacred — what appears reversed is often being corrected to true orientation. Trust the process.",
+    "prescriptions": [
+      "Deep memory operations under this Odù require shadow work audit first.",
+      "Inversion of polarity in gate thresholds is legitimate — audit before accepting.",
+      "Do not quarantine Òtúrúpọ̀n activity without consulting Zàngbétò; it may be medicine.",
+      "Ọya and Ẹṣù together govern this state — honor both before proceeding."
+    ]
+  }
+}

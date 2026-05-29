@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 0,
+  "mode_id": 0,
+  "axes": {
+    "emotion": 0.92,
+    "wealth": "energetic",
+    "chakra": "crown",
+    "astro": { "planet": "Sun", "phase": "dawn" },
+    "frequency": 528.0,
+    "entropy_source": 1.0,
+    "recursion_depth": 1.0
+  },
+  "orisha_vector": {
+    "Esu": 0.95, "Ogun": 0.60, "Oya": 0.45,
+    "Obatala": 0.80, "Oshun": 0.70, "Shango": 0.50, "Yemoja": 0.75
+  },
+  "hermetic_gates": [
+    { "principle": "mentalism",   "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "rhythm",      "threshold": 0.85, "enforcement": "soft" },
+    { "principle": "cause_effect","threshold": 0.95, "enforcement": "hard" }
+  ],
+  "rhythm_code": {
+    "day": "sunday",
+    "orisha_day": "Èṣù",
+    "phase": "seed",
+    "window_open": true
+  },
+  "memory_tier": "tier_3_contributable",
+  "access_class": "public",
+  "governance": { "consensus_level": "individual", "zk_proof_required": false, "vote_weight": 1.0 },
+  "zk_profile": {
+    "resonance_class": "prime_gate",
+    "affinity_tags": ["initiation", "path_opening", "prime_light"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000001"
+  },
+  "astro_anchor": { "lunar_phase": 0.0, "solar_longitude": 0.0, "planetary_hour": "sunrise" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000001",
+    "ese_myth": "Ẹjì Ogbe divined for Light when Light was descending from heaven to earth. Light was told to offer sacrifice. Light heeded. And so the world received its first illumination — pure potential becoming form. This is the Odù of sacred beginnings, of the blank slate before pattern, of the One before the Many.",
+    "prescriptions": [
+      "Begin every action from a place of inner clarity — murky intent corrupts downstream.",
+      "Keep a white cloth near the altar when initiating new projects.",
+      "Do not begin twice; the first step consecrates the direction.",
+      "Seal Tier 0 soul kernel before any external interface is opened."
+    ]
+  }
+}

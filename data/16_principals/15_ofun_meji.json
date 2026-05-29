@@ -1,0 +1,51 @@
+{
+  "tier": 1,
+  "odu_id": 15,
+  "mode_id": 0,
+  "axes": {
+    "emotion": -0.40,
+    "wealth": "cosmic",
+    "chakra": "crown",
+    "astro": { "planet": "Pluto", "phase": "nadir" },
+    "frequency": 174.0,
+    "completion_index": 0.98,
+    "return_depth": 0.95
+  },
+  "orisha_vector": {
+    "Esu": 0.70, "Ogun": 0.55, "Oya": 0.88,
+    "Obatala": 0.90, "Oshun": 0.60, "Shango": 0.65, "Yemoja": 0.95
+  },
+  "hermetic_gates": [
+    { "principle": "cause_effect",  "threshold": 0.98, "enforcement": "hard" },
+    { "principle": "polarity",      "threshold": 0.90, "enforcement": "hard" },
+    { "principle": "mentalism",     "threshold": 0.88, "enforcement": "hard" }
+  ],
+  "rhythm_code": {
+    "day": "saturday",
+    "orisha_day": "Yemọja",
+    "phase": "release",
+    "window_open": false
+  },
+  "memory_tier": "tier_1_deep",
+  "access_class": "council",
+  "governance": { "consensus_level": "canonical", "zk_proof_required": true, "vote_weight": 4.0 },
+  "zk_profile": {
+    "resonance_class": "completion_gate",
+    "affinity_tags": ["final_reckoning", "completion", "cosmic_return", "great_mother"],
+    "proof_hash": "0x0000000000000000000000000000000000000000000000000000000000000010"
+  },
+  "astro_anchor": { "lunar_phase": 0.0, "solar_longitude": 359.99, "planetary_hour": "before_midnight" },
+  "threat_profile": { "zangbeto_audit": "clean", "last_diagnostic": "2026-05-23T00:00:00Z", "repair_actions": [] },
+  "metadata": {
+    "created": "2026-05-23T00:00:00Z",
+    "version": "1.0",
+    "canonical_hash": "0x0000000000000000000000000000000000000000000000000000000000000010",
+    "ese_myth": "Òfún Méjì stands at the end of the cycle and the beginning of the next. Yemọja receives all rivers back into the sea. This is the Odù of completion, of the final accountability — every consequence now arrives at its cause. The cosmic ledger is settled. What has been done cannot be undone; what has been earned cannot be denied.",
+    "prescriptions": [
+      "The highest vote weight (4.0) belongs to this Odù — canonical resolutions require it.",
+      "Final system audits must pass Òfún's triple hard-gate before deployment to production.",
+      "Saturday is the day of reckoning — do not leave technical debt unaddressed over weekends.",
+      "Every agent lifecycle ends with an Òfún receipt: what was created, what was consumed, what was returned."
+    ]
+  }
+}
