@@ -1,3 +1,4 @@
+pub mod error;
 pub mod vm;
 pub mod odu;
 pub mod entropy;
@@ -12,6 +13,9 @@ pub mod ritual_codex;
 pub mod field;
 pub mod receipt;
 pub mod compiler;
+
+// Error type
+pub use error::IfaError;
 
 // Core VM
 pub use vm::{IfaVM, CastResult};

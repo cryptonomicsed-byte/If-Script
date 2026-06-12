@@ -3,7 +3,7 @@ use ifascript::IfaVM;
 fn main() {
     let mut vm = IfaVM::with_intent("Ẹbọ: I seek clarity and truth from the sky");
 
-    vm.execute(vec!["Èjì Ogbè", "CastCowries", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"]);
+    let _ = vm.execute(vec!["Èjì Ogbè", "CastCowries", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"]);
 
     if vm.stack.len() >= 2 {
         let cowries = vm.stack[1] as u16;
