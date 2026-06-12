@@ -1,9 +1,9 @@
-use std::thread;
-use sha2::{Digest, Sha256};
-use crate::ebo::{EboHistory, EboTrigger, Ebo};
+use crate::ebo::{Ebo, EboHistory, EboTrigger};
 use crate::entropy::CowrieOracle;
 use crate::error::IfaError;
 use crate::odu::{get_odu, ActionVessel, Odu};
+use sha2::{Digest, Sha256};
+use std::thread;
 
 pub type Stack = Vec<i32>;
 
@@ -49,7 +49,9 @@ impl OduOp {
         match self {
             OduOp::PushConst(v) => {
                 if vm.stack.len() >= MAX_STACK_DEPTH {
-                    return Err(IfaError::StackOverflow { max: MAX_STACK_DEPTH });
+                    return Err(IfaError::StackOverflow {
+                        max: MAX_STACK_DEPTH,
+                    });
                 }
                 vm.stack.push(*v);
             }
@@ -66,7 +68,9 @@ impl OduOp {
                     return Ok(());
                 }
                 if vm.stack.len() >= MAX_STACK_DEPTH {
-                    return Err(IfaError::StackOverflow { max: MAX_STACK_DEPTH });
+                    return Err(IfaError::StackOverflow {
+                        max: MAX_STACK_DEPTH,
+                    });
                 }
                 let top = *vm.stack.last().unwrap();
                 vm.stack.push(top);
@@ -107,7 +111,9 @@ impl OduOp {
             }
             OduOp::CastCowries => {
                 if vm.stack.len() >= MAX_STACK_DEPTH {
-                    return Err(IfaError::StackOverflow { max: MAX_STACK_DEPTH });
+                    return Err(IfaError::StackOverflow {
+                        max: MAX_STACK_DEPTH,
+                    });
                 }
                 let cast = vm.oracle.cast_cowries();
                 vm.stack.push(cast as i32);

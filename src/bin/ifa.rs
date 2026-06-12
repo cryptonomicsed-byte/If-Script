@@ -52,7 +52,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Cast { ritual, day, gate, witness } => {
+        Commands::Cast {
+            ritual,
+            day,
+            gate,
+            witness,
+        } => {
             // Use existing entropy oracle
             let mut oracle = CowrieOracle::new("ifa-cast-cli");
             let cast_a = oracle.cast_cowries();
@@ -82,7 +87,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let inv = &invocations[0];
                         println!("\n   ✓ Ritual: {}", inv.ritual_name);
                         if let Some(gate_spec) = &inv.gate {
-                            println!("   Gate: {:?} threshold={:.2}", gate_spec.principle, gate_spec.threshold);
+                            println!(
+                                "   Gate: {:?} threshold={:.2}",
+                                gate_spec.principle, gate_spec.threshold
+                            );
                         }
                         if let Some(q) = inv.witness_quorum {
                             println!("   Witness quorum: {}", q);
@@ -110,7 +118,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{}", serde_json::to_string_pretty(&invocations)?);
                 }
                 "summary" => {
-                    println!("Parsed {} invocation(s) from {}", invocations.len(), input.display());
+                    println!(
+                        "Parsed {} invocation(s) from {}",
+                        invocations.len(),
+                        input.display()
+                    );
                     for (i, inv) in invocations.iter().enumerate() {
                         println!("  [{}] invoke {}", i, inv.ritual_name);
                         if let Some(g) = &inv.gate {

@@ -3,9 +3,9 @@
 pub mod ast;
 pub mod parser;
 
-pub use parser::{IfaParser, ParsedInvocation, ParseError};
+pub use parser::{IfaParser, ParseError, ParsedInvocation};
 
-use ast::{Invocation, GateSpec, HermeticPrinciple, SabbathSpec};
+use ast::{GateSpec, HermeticPrinciple, Invocation, SabbathSpec};
 
 /// Lower a raw `ParsedInvocation` into a typed `ast::Invocation`
 pub fn lower_invocation(parsed: ParsedInvocation) -> Invocation {

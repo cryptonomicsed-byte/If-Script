@@ -1,9 +1,9 @@
-use ifascript::{IfaVM, ebo::EboTrigger};
+use ifascript::{ebo::EboTrigger, IfaVM};
 
 #[test]
 fn test_stack_underflow_triggers_ebo() {
     let mut vm = IfaVM::new();
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]);  // POP on empty stack
+    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]); // POP on empty stack
 
     assert!(vm.ebo_history.has_trigger(&EboTrigger::StackUnderflow));
 }

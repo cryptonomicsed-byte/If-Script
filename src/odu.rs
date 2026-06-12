@@ -50,15 +50,15 @@ pub enum OduOpCode {
 impl OduOpCode {
     pub fn to_op(self) -> OduOp {
         match self {
-            OduOpCode::PushConst1   => OduOp::PushConst(1),
-            OduOpCode::PushConst0   => OduOp::PushConst(0),
-            OduOpCode::PopVoid      => OduOp::PopVoid,
-            OduOpCode::Dup          => OduOp::Dup,
-            OduOpCode::Swap         => OduOp::Swap,
-            OduOpCode::Add          => OduOp::Add,
-            OduOpCode::Sub          => OduOp::Sub,
-            OduOpCode::HaltIfOne    => OduOp::HaltIfOne,
-            OduOpCode::CastCowries  => OduOp::CastCowries,
+            OduOpCode::PushConst1 => OduOp::PushConst(1),
+            OduOpCode::PushConst0 => OduOp::PushConst(0),
+            OduOpCode::PopVoid => OduOp::PopVoid,
+            OduOpCode::Dup => OduOp::Dup,
+            OduOpCode::Swap => OduOp::Swap,
+            OduOpCode::Add => OduOp::Add,
+            OduOpCode::Sub => OduOp::Sub,
+            OduOpCode::HaltIfOne => OduOp::HaltIfOne,
+            OduOpCode::CastCowries => OduOp::CastCowries,
         }
     }
 }
@@ -79,69 +79,68 @@ pub struct Odu {
     pub opcode: OduOpCode,
 }
 
-
 /// The 16 Action Vessels — operational domain for each Odù wave.
 /// Determined by the top 4 bits of the Odù index (wave).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ActionVessel {
-    Genesis,    // Wave  1 — Ẹ̀jì Ògbe     — Initialize, covenant
-    Void,       // Wave  2 — Òyèkú Méjì    — Clear, release
-    Attention,  // Wave  3 — Ìwòrì Méjì    — Focus, signal/noise
-    Loop,       // Wave  4 — Òdí Méjì      — Pattern, iteration
-    Receipt,    // Wave  5 — Ìrosùn Méjì   — Record, accountability
-    Mask,       // Wave  6 — Ọ̀wọ́nrín Méjì — Public/private split
-    Residue,    // Wave  7 — Ọ̀bàrà Méjì   — Behavioral echoes
-    Execution,  // Wave  8 — Ọ̀kànràn Méjì — Precision action
-    Swarm,      // Wave  9 — Ògúndá Méjì   — Collective coordination
-    Restraint,  // Wave 10 — Ọ̀sá Méjì     — Ethical limits
-    Migration,  // Wave 11 — Ìká Méjì      — Portability, identity
-    Consent,    // Wave 12 — Òtúrúpòn Méjì — Human approval
-    Vision,     // Wave 13 — Òtúrá Méjì    — Direction, horizon
-    Growth,     // Wave 14 — Ìrẹtẹ̀ Méjì   — Fractal expansion
-    Seal,       // Wave 15 — Òsé Méjì      — Sacred privacy
-    Rhythm,     // Wave 16 — Òfún Méjì     — Ritual cadence
+    Genesis,   // Wave  1 — Ẹ̀jì Ògbe     — Initialize, covenant
+    Void,      // Wave  2 — Òyèkú Méjì    — Clear, release
+    Attention, // Wave  3 — Ìwòrì Méjì    — Focus, signal/noise
+    Loop,      // Wave  4 — Òdí Méjì      — Pattern, iteration
+    Receipt,   // Wave  5 — Ìrosùn Méjì   — Record, accountability
+    Mask,      // Wave  6 — Ọ̀wọ́nrín Méjì — Public/private split
+    Residue,   // Wave  7 — Ọ̀bàrà Méjì   — Behavioral echoes
+    Execution, // Wave  8 — Ọ̀kànràn Méjì — Precision action
+    Swarm,     // Wave  9 — Ògúndá Méjì   — Collective coordination
+    Restraint, // Wave 10 — Ọ̀sá Méjì     — Ethical limits
+    Migration, // Wave 11 — Ìká Méjì      — Portability, identity
+    Consent,   // Wave 12 — Òtúrúpòn Méjì — Human approval
+    Vision,    // Wave 13 — Òtúrá Méjì    — Direction, horizon
+    Growth,    // Wave 14 — Ìrẹtẹ̀ Méjì   — Fractal expansion
+    Seal,      // Wave 15 — Òsé Méjì      — Sacred privacy
+    Rhythm,    // Wave 16 — Òfún Méjì     — Ritual cadence
 }
 
 impl ActionVessel {
     pub fn from_index(index: u8) -> Self {
         match index >> 4 {
-            0  => ActionVessel::Genesis,
-            1  => ActionVessel::Void,
-            2  => ActionVessel::Attention,
-            3  => ActionVessel::Loop,
-            4  => ActionVessel::Receipt,
-            5  => ActionVessel::Mask,
-            6  => ActionVessel::Residue,
-            7  => ActionVessel::Execution,
-            8  => ActionVessel::Swarm,
-            9  => ActionVessel::Restraint,
+            0 => ActionVessel::Genesis,
+            1 => ActionVessel::Void,
+            2 => ActionVessel::Attention,
+            3 => ActionVessel::Loop,
+            4 => ActionVessel::Receipt,
+            5 => ActionVessel::Mask,
+            6 => ActionVessel::Residue,
+            7 => ActionVessel::Execution,
+            8 => ActionVessel::Swarm,
+            9 => ActionVessel::Restraint,
             10 => ActionVessel::Migration,
             11 => ActionVessel::Consent,
             12 => ActionVessel::Vision,
             13 => ActionVessel::Growth,
             14 => ActionVessel::Seal,
-            _  => ActionVessel::Rhythm,
+            _ => ActionVessel::Rhythm,
         }
     }
 
     pub fn file_domain(self) -> &'static str {
         match self {
-            ActionVessel::Genesis   => "genesis.md",
-            ActionVessel::Void      => "void_log.md",
+            ActionVessel::Genesis => "genesis.md",
+            ActionVessel::Void => "void_log.md",
             ActionVessel::Attention => "attention_audit.md",
-            ActionVessel::Loop      => "loops.md",
-            ActionVessel::Receipt   => "receipt_ledger.md",
-            ActionVessel::Mask      => "soul.md",
-            ActionVessel::Residue   => "memory_residue.md",
+            ActionVessel::Loop => "loops.md",
+            ActionVessel::Receipt => "receipt_ledger.md",
+            ActionVessel::Mask => "soul.md",
+            ActionVessel::Residue => "memory_residue.md",
             ActionVessel::Execution => "execution_plan.md",
-            ActionVessel::Swarm     => "swarm_charter.md",
+            ActionVessel::Swarm => "swarm_charter.md",
             ActionVessel::Restraint => "restraint_log.md",
             ActionVessel::Migration => "migration_plan.md",
-            ActionVessel::Consent   => "consent_log.md",
-            ActionVessel::Vision    => "vision.md",
-            ActionVessel::Growth    => "fractal_log.md",
-            ActionVessel::Seal      => "seal/",
-            ActionVessel::Rhythm    => "rhythm_codex.md",
+            ActionVessel::Consent => "consent_log.md",
+            ActionVessel::Vision => "vision.md",
+            ActionVessel::Growth => "fractal_log.md",
+            ActionVessel::Seal => "seal/",
+            ActionVessel::Rhythm => "rhythm_codex.md",
         }
     }
 }
@@ -159,7 +158,9 @@ pub fn get_odu_by_binary(binary: u8) -> &'static Odu {
 /// Search by Yorùbá compound name or universal English name.
 /// Returns `None` if no entry matches.
 pub fn lookup_by_name(name: &str) -> Option<&'static Odu> {
-    ODU_SET.iter().find(|o| o.name == name || o.universal_name == name)
+    ODU_SET
+        .iter()
+        .find(|o| o.name == name || o.universal_name == name)
 }
 
 pub static ODU_SET: [Odu; 256] = [
@@ -3332,7 +3333,7 @@ lazy_static::lazy_static! {
         m.insert("Òsé Méjì", OduOp::Add);
         m.insert("Òfún Méjì", OduOp::HaltIfOne);
         m.insert("CastCowries", OduOp::CastCowries);
-        
+
 
         m
     };

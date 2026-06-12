@@ -1,6 +1,6 @@
-use std::time::Duration;
-use std::collections::HashMap;
 use sha2::{Digest, Sha256};
+use std::collections::HashMap;
+use std::time::Duration;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum EboTrigger {
@@ -30,7 +30,9 @@ pub struct EboHistory {
 
 impl EboHistory {
     pub fn new() -> Self {
-        Self { counts: HashMap::new() }
+        Self {
+            counts: HashMap::new(),
+        }
     }
 
     pub fn record(&mut self, trigger: EboTrigger) {
@@ -43,7 +45,9 @@ impl EboHistory {
             (EboTrigger::StackUnderflow, 0..=2) => Ebo::TimeDelay(Duration::from_secs(1)),
             (EboTrigger::StackUnderflow, _) => Ebo::ProofOfWork(20),
             (EboTrigger::DivisionByZero, _) => Ebo::ProofOfWork(20),
-            (EboTrigger::ForbiddenBranch, _) => Ebo::IntentionString("I vow clarity and no harm".to_string()),
+            (EboTrigger::ForbiddenBranch, _) => {
+                Ebo::IntentionString("I vow clarity and no harm".to_string())
+            }
             _ => Ebo::TimeDelay(Duration::from_secs(5)),
         }
     }
@@ -66,9 +70,7 @@ impl EboTrigger {
         match (self, ebo) {
             (EboTrigger::StackUnderflow, Ebo::TimeDelay(d)) => d.as_secs() >= 1,
             (EboTrigger::DivisionByZero, Ebo::ProofOfWork(diff)) => *diff >= 20,
-            (EboTrigger::ForbiddenBranch, Ebo::IntentionString(s)) => {
-                vow_is_valid(s)
-            }
+            (EboTrigger::ForbiddenBranch, Ebo::IntentionString(s)) => vow_is_valid(s),
             _ => false,
         }
     }
@@ -83,12 +85,10 @@ pub fn vow_is_valid(vow: &str) -> bool {
         return false;
     }
     let lower = vow.to_lowercase();
-    let has_commitment = lower.contains("i vow")
-        || lower.contains("i pledge")
-        || lower.contains("i commit");
-    let has_ethical_term = lower.contains("clarity")
-        || lower.contains("no harm")
-        || lower.contains("transparency");
+    let has_commitment =
+        lower.contains("i vow") || lower.contains("i pledge") || lower.contains("i commit");
+    let has_ethical_term =
+        lower.contains("clarity") || lower.contains("no harm") || lower.contains("transparency");
     has_commitment && has_ethical_term
 }
 

@@ -161,7 +161,12 @@ impl HermeticGate {
 
         let warnings = violations
             .iter()
-            .filter(|v| matches!(v.enforcement, EnforcementLevel::Soft | EnforcementLevel::AuditOnly))
+            .filter(|v| {
+                matches!(
+                    v.enforcement,
+                    EnforcementLevel::Soft | EnforcementLevel::AuditOnly
+                )
+            })
             .count();
 
         GateValidationResult {
@@ -196,10 +201,18 @@ pub fn default_gate() -> HermeticGate {
                 5 => 16383,
                 6 => 32767,
                 7 => 65535,
-                _ => return Some(GateViolation::TierAccessDenied { required: 1, actual: ctx.tier }),
+                _ => {
+                    return Some(GateViolation::TierAccessDenied {
+                        required: 1,
+                        actual: ctx.tier,
+                    })
+                }
             };
             if ctx.odu_id > max_odu {
-                Some(GateViolation::OduOutOfRange { odu_id: ctx.odu_id, max_odu })
+                Some(GateViolation::OduOutOfRange {
+                    odu_id: ctx.odu_id,
+                    max_odu,
+                })
             } else {
                 None
             }
@@ -212,7 +225,9 @@ pub fn default_gate() -> HermeticGate {
         enforcement: EnforcementLevel::Hard,
         alert_zangbeto: true,
         check: Box::new(|ctx| {
-            if ctx.odu_id == 0 && matches!(ctx.access_class, crate::cosmogram::AccessClass::MachineOnly) {
+            if ctx.odu_id == 0
+                && matches!(ctx.access_class, crate::cosmogram::AccessClass::MachineOnly)
+            {
                 Some(GateViolation::SovereigntyViolation)
             } else {
                 None
@@ -226,7 +241,9 @@ pub fn default_gate() -> HermeticGate {
         enforcement: EnforcementLevel::AuditOnly,
         alert_zangbeto: false,
         check: Box::new(|ctx| {
-            if ctx.tier >= 6 && matches!(ctx.memory_tier, crate::soul::MemoryTier::Tier3Contributable) {
+            if ctx.tier >= 6
+                && matches!(ctx.memory_tier, crate::soul::MemoryTier::Tier3Contributable)
+            {
                 Some(GateViolation::MemoryTierTooLow {
                     message: format!("tier {} requires deeper memory tier", ctx.tier),
                 })

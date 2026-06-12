@@ -1,6 +1,6 @@
 // Canonical receipt hashing using SHA3-256 + JSON
-use sha3::{Digest, Sha3_256};
 use crate::ritual_codex::ResonanceReceipt;
+use sha3::{Digest, Sha3_256};
 
 pub fn hash_receipt_canonical(receipt: &ResonanceReceipt) -> Result<String, String> {
     let json = serde_json::to_string(receipt).map_err(|e| e.to_string())?;
