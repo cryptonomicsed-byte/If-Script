@@ -1,25 +1,37 @@
+//! entropy — CowrieOracle: NIST Randomness Beacon + ChaCha20, mixed via HKDF.
+//!
+//! Entropy pipeline (RFC 5869):
+//!   - Beacon path: each 512-bit NIST pulse is used as the HKDF salt with the
+//!     ritual seed (SHA-256 of the intent string) as input keying material.
+//!     The expanded output seeds a per-pulse ChaCha20 keystream, refreshed
+//!     when the beacon publishes a new pulse (every 60 s).
+//!   - Fallback path: when the beacon is unreachable, HKDF over the ritual
+//!     seed salted with wall-clock nanoseconds + process id seeds a ChaCha20
+//!     keystream, so two agents with the same intent string still diverge.
+//!
+//! WASM note: the beacon fetch is compiled out on wasm32 (no blocking HTTP),
+//! and the fallback salt degrades to the ritual seed alone — deterministic
+//! per intent. Host-provided entropy should be injected via the intent string
+//! until an async fetch path exists.
+
+use hkdf::Hkdf;
 use rand::RngCore;
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use sha2::{Digest, Sha256};
-use std::collections::VecDeque;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 #[cfg(not(target_arch = "wasm32"))]
 use {reqwest::blocking::Client, serde_json::Value};
 
-pub struct NISTBeacon;
-
-pub enum EntropySource {
-    Atmospheric(NISTBeacon),
-    Fallback(Box<ChaCha20Rng>),
-}
-
 pub struct CowrieOracle {
-    source: EntropySource,
-    buffer: VecDeque<u32>,
     ritual_seed: [u8; 32],
-    fallback_rng: ChaCha20Rng,
+    /// ChaCha20 keystream seeded from HKDF(salt = beacon pulse, ikm = ritual seed).
+    /// `None` until the first successful beacon fetch, or after a fetch failure.
+    pulse_rng: Option<ChaCha20Rng>,
+    /// Lazily-initialised fallback keystream, seeded from
+    /// HKDF(salt = time ‖ pid, ikm = ritual seed) on first use.
+    fallback_rng: Option<ChaCha20Rng>,
     last_fetch: Instant,
     fetch_interval: Duration,
     #[cfg(not(target_arch = "wasm32"))]
@@ -29,13 +41,11 @@ pub struct CowrieOracle {
 impl CowrieOracle {
     pub fn new(ritual_intent: &str) -> Self {
         let seed: [u8; 32] = Sha256::digest(ritual_intent.as_bytes()).into();
-        let fallback_rng = ChaCha20Rng::from_seed(seed);
 
         Self {
-            source: EntropySource::Atmospheric(NISTBeacon),
-            buffer: VecDeque::new(),
             ritual_seed: seed,
-            fallback_rng,
+            pulse_rng: None,
+            fallback_rng: None,
             last_fetch: Instant::now() - Duration::from_secs(61),
             fetch_interval: Duration::from_secs(60),
             #[cfg(not(target_arch = "wasm32"))]
@@ -48,33 +58,29 @@ impl CowrieOracle {
     }
 
     fn next_u32(&mut self) -> u32 {
-        match &mut self.source {
-            EntropySource::Atmospheric(_beacon) => {
-                if self.buffer.is_empty() || self.last_fetch.elapsed() > self.fetch_interval {
-                    self.refill_from_beacon();
-                }
+        if self.pulse_rng.is_none() || self.last_fetch.elapsed() > self.fetch_interval {
+            self.refill_from_beacon();
+        }
 
-                if !self.buffer.is_empty() {
-                    let val = self.buffer.pop_front().unwrap_or(0);
-                    val ^ self.derive_mixing_word(0)
-                } else {
-                    self.fallback_u32()
-                }
-            }
-            EntropySource::Fallback(_) => self.fallback_u32(),
+        match &mut self.pulse_rng {
+            Some(rng) => rng.next_u32(),
+            None => self.fallback_u32(),
         }
     }
 
     fn fallback_u32(&mut self) -> u32 {
-        // Mix ChaCha20 output with all 32 seed bytes (via a derived word) and a
-        // time-based nonce so that two agents with the same intent string produce
-        // different sequences when the NIST Beacon is unavailable.
-        let chacha_val = self.fallback_rng.next_u32();
-        let time_nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap_or_default()
-            .subsec_nanos();
-        chacha_val ^ self.derive_mixing_word(time_nonce)
+        if self.fallback_rng.is_none() {
+            let seed = hkdf_seed(
+                &fallback_salt(),
+                &self.ritual_seed,
+                b"ifascript-fallback-v1",
+            );
+            self.fallback_rng = Some(ChaCha20Rng::from_seed(seed));
+        }
+        self.fallback_rng
+            .as_mut()
+            .expect("fallback_rng initialised above")
+            .next_u32()
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -84,24 +90,20 @@ impl CowrieOracle {
             .get("https://beacon.nist.gov/beacon/2.0/chain/1/pulse/last")
             .send();
 
-        match result {
-            Ok(resp) => {
-                if let Ok(json) = resp.json::<Value>() {
-                    if let Some(output) = json["pulse"]["outputValue"].as_str() {
-                        if let Ok(bytes) = hex::decode(output) {
-                            for chunk in bytes.chunks(4) {
-                                if chunk.len() == 4 {
-                                    let arr = [chunk[0], chunk[1], chunk[2], chunk[3]];
-                                    self.buffer.push_back(u32::from_be_bytes(arr));
-                                }
-                            }
-                        }
+        self.pulse_rng = None;
+        if let Ok(resp) = result {
+            if let Ok(json) = resp.json::<Value>() {
+                if let Some(output) = json["pulse"]["outputValue"].as_str() {
+                    if let Ok(pulse_bytes) = hex::decode(output) {
+                        let seed =
+                            hkdf_seed(&pulse_bytes, &self.ritual_seed, b"ifascript-pulse-v1");
+                        self.pulse_rng = Some(ChaCha20Rng::from_seed(seed));
                     }
                 }
             }
-            Err(_) => {
-                log::warn!("NIST Beacon unavailable — using ritual fallback");
-            }
+        }
+        if self.pulse_rng.is_none() {
+            log::warn!("NIST Beacon unavailable — using ritual fallback");
         }
 
         self.last_fetch = Instant::now();
@@ -110,28 +112,39 @@ impl CowrieOracle {
     #[cfg(target_arch = "wasm32")]
     fn refill_from_beacon(&mut self) {
         // Network access in WASM requires async JS FFI; beacon fetch is a no-op
-        // here so the fallback_rng path is used automatically.
+        // here so the fallback keystream is used automatically.
         log::warn!("NIST Beacon fetch not supported in WASM — using ritual fallback");
         self.last_fetch = Instant::now();
     }
+}
 
-    /// Derive a 32-bit mixing word from all 32 bytes of the ritual seed plus an
-    /// additional u32 tweak (e.g. a time nonce). Uses the full SHA-256 output
-    /// rather than discarding 28 of 32 bytes as the prior XOR scheme did.
-    fn derive_mixing_word(&self, tweak: u32) -> u32 {
-        let mut hasher = Sha256::new();
-        hasher.update(self.ritual_seed);
-        hasher.update(tweak.to_be_bytes());
-        let hash = hasher.finalize();
-        // Fold all 32 bytes into a single u32 via XOR of four 8-byte words
-        let w0 = u32::from_be_bytes([hash[0], hash[1], hash[2], hash[3]]);
-        let w1 = u32::from_be_bytes([hash[4], hash[5], hash[6], hash[7]]);
-        let w2 = u32::from_be_bytes([hash[8], hash[9], hash[10], hash[11]]);
-        let w3 = u32::from_be_bytes([hash[12], hash[13], hash[14], hash[15]]);
-        let w4 = u32::from_be_bytes([hash[16], hash[17], hash[18], hash[19]]);
-        let w5 = u32::from_be_bytes([hash[20], hash[21], hash[22], hash[23]]);
-        let w6 = u32::from_be_bytes([hash[24], hash[25], hash[26], hash[27]]);
-        let w7 = u32::from_be_bytes([hash[28], hash[29], hash[30], hash[31]]);
-        w0 ^ w1 ^ w2 ^ w3 ^ w4 ^ w5 ^ w6 ^ w7
-    }
+/// HKDF-SHA256 (RFC 5869): Extract with the given salt and input keying
+/// material, then Expand with a domain-separation info string to a 32-byte
+/// ChaCha20 seed.
+fn hkdf_seed(salt: &[u8], ikm: &[u8; 32], info: &[u8]) -> [u8; 32] {
+    let hk = Hkdf::<Sha256>::new(Some(salt), ikm);
+    let mut okm = [0u8; 32];
+    hk.expand(info, &mut okm)
+        .expect("32 bytes is a valid HKDF-SHA256 output length");
+    okm
+}
+
+/// Wall-clock nanoseconds + process id, so identical intents diverge when the
+/// beacon is down. On wasm32 neither source exists; the salt is empty and the
+/// fallback is deterministic per intent (documented limitation).
+#[cfg(not(target_arch = "wasm32"))]
+fn fallback_salt() -> Vec<u8> {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let mut salt = Vec::with_capacity(20);
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default();
+    salt.extend_from_slice(&now.as_nanos().to_be_bytes());
+    salt.extend_from_slice(&std::process::id().to_be_bytes());
+    salt
+}
+
+#[cfg(target_arch = "wasm32")]
+fn fallback_salt() -> Vec<u8> {
+    Vec::new()
 }
