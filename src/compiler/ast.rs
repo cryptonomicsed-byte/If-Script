@@ -102,7 +102,7 @@ pub enum HermeticPrinciple {
 }
 
 impl HermeticPrinciple {
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s {
             "mentalism" => Some(Self::Mentalism),
             "correspondence" => Some(Self::Correspondence),
@@ -124,7 +124,7 @@ pub enum SabbathSpec {
 }
 
 impl SabbathSpec {
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s {
             "Saturday" => Self::Saturday,
             "any" => Self::Any,

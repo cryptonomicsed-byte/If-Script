@@ -261,10 +261,10 @@ impl CosmogramEngine {
         use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         hasher.update(&self.base_entropy);
-        hasher.update(&odu_id.to_le_bytes());
-        hasher.update(&[tier]);
+        hasher.update(odu_id.to_le_bytes());
+        hasher.update([tier]);
         hasher.update(format!("{:?}", day).as_bytes());
-        hasher.update(&timestamp.to_le_bytes());
+        hasher.update(timestamp.to_le_bytes());
         let entropy_hash = format!("0x{}", hex::encode(hasher.finalize()));
 
         let window_open = self.is_window_open(&day, timestamp);

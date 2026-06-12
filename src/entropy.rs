@@ -12,7 +12,7 @@ pub struct NISTBeacon;
 
 pub enum EntropySource {
     Atmospheric(NISTBeacon),
-    Fallback(ChaCha20Rng),
+    Fallback(Box<ChaCha20Rng>),
 }
 
 pub struct CowrieOracle {
@@ -120,7 +120,7 @@ impl CowrieOracle {
     /// rather than discarding 28 of 32 bytes as the prior XOR scheme did.
     fn derive_mixing_word(&self, tweak: u32) -> u32 {
         let mut hasher = Sha256::new();
-        hasher.update(&self.ritual_seed);
+        hasher.update(self.ritual_seed);
         hasher.update(tweak.to_be_bytes());
         let hash = hasher.finalize();
         // Fold all 32 bytes into a single u32 via XOR of four 8-byte words

@@ -19,7 +19,7 @@ fn test_cowrie_cast_produces_valid_u16_range() {
     vm.execute(vec!["CastCowries"]).unwrap();
     let val = vm.stack[0];
     assert!(
-        val >= 0 && val <= 0xFFFF,
+        (0..=0xFFFF).contains(&val),
         "CastCowries must produce a u16 value"
     );
 }

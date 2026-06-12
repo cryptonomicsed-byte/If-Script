@@ -95,11 +95,13 @@ pub struct GateValidationResult {
     pub warnings: usize,
 }
 
+pub type GateCheckFn = Box<dyn Fn(&GateContext<'_>) -> Option<GateViolation> + Send + Sync>;
+
 pub struct GateRule {
     pub principle: HermeticPrinciple,
     pub enforcement: EnforcementLevel,
     pub alert_zangbeto: bool,
-    pub check: Box<dyn Fn(&GateContext<'_>) -> Option<GateViolation> + Send + Sync>,
+    pub check: GateCheckFn,
 }
 
 impl std::fmt::Debug for GateRule {
