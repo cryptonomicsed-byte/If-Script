@@ -33,16 +33,15 @@ impl IfaParser {
             .next()
             .expect("program rule always present");
 
-        program.into_inner()
+        program
+            .into_inner()
             .filter(|p| p.as_rule() == Rule::invocation)
             .map(parse_invocation)
             .collect()
     }
 }
 
-fn parse_invocation(
-    pair: pest::iterators::Pair<Rule>,
-) -> Result<ParsedInvocation, ParseError> {
+fn parse_invocation(pair: pest::iterators::Pair<Rule>) -> Result<ParsedInvocation, ParseError> {
     let mut ritual_name = None;
     let mut gate_principle = None;
     let mut gate_threshold = None;
@@ -184,8 +183,15 @@ mod tests {
 
     #[test]
     fn all_principles() {
-        for p in &["mentalism", "correspondence", "vibration",
-                   "polarity", "rhythm", "cause_effect", "gender"] {
+        for p in &[
+            "mentalism",
+            "correspondence",
+            "vibration",
+            "polarity",
+            "rhythm",
+            "cause_effect",
+            "gender",
+        ] {
             let src = format!("invoke r with {}:0.5;", p);
             let result = parse(&src);
             assert_eq!(

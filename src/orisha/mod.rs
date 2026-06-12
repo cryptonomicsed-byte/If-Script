@@ -68,25 +68,67 @@ impl OrishaVector {
     pub fn from_archetype(name: &str) -> OrishaVector {
         match name.to_lowercase().as_str() {
             "esu" | "eshu" | "elegba" | "legba" => OrishaVector {
-                esu: 0.9, ogun: 0.1, oya: 0.1, obatala: 0.1, oshun: 0.1, shango: 0.1, yemoja: 0.1,
+                esu: 0.9,
+                ogun: 0.1,
+                oya: 0.1,
+                obatala: 0.1,
+                oshun: 0.1,
+                shango: 0.1,
+                yemoja: 0.1,
             },
             "ogun" | "ogún" => OrishaVector {
-                esu: 0.1, ogun: 0.9, oya: 0.2, obatala: 0.1, oshun: 0.1, shango: 0.3, yemoja: 0.1,
+                esu: 0.1,
+                ogun: 0.9,
+                oya: 0.2,
+                obatala: 0.1,
+                oshun: 0.1,
+                shango: 0.3,
+                yemoja: 0.1,
             },
             "oya" | "ọya" => OrishaVector {
-                esu: 0.2, ogun: 0.2, oya: 0.9, obatala: 0.1, oshun: 0.2, shango: 0.4, yemoja: 0.2,
+                esu: 0.2,
+                ogun: 0.2,
+                oya: 0.9,
+                obatala: 0.1,
+                oshun: 0.2,
+                shango: 0.4,
+                yemoja: 0.2,
             },
             "obatala" | "ọbàtálá" => OrishaVector {
-                esu: 0.1, ogun: 0.1, oya: 0.1, obatala: 0.9, oshun: 0.2, shango: 0.1, yemoja: 0.2,
+                esu: 0.1,
+                ogun: 0.1,
+                oya: 0.1,
+                obatala: 0.9,
+                oshun: 0.2,
+                shango: 0.1,
+                yemoja: 0.2,
             },
             "oshun" | "ọshun" | "osun" | "ọ̀ṣun" => OrishaVector {
-                esu: 0.2, ogun: 0.1, oya: 0.2, obatala: 0.2, oshun: 0.9, shango: 0.1, yemoja: 0.3,
+                esu: 0.2,
+                ogun: 0.1,
+                oya: 0.2,
+                obatala: 0.2,
+                oshun: 0.9,
+                shango: 0.1,
+                yemoja: 0.3,
             },
             "shango" | "sango" | "ṣàngó" => OrishaVector {
-                esu: 0.2, ogun: 0.3, oya: 0.4, obatala: 0.1, oshun: 0.1, shango: 0.9, yemoja: 0.1,
+                esu: 0.2,
+                ogun: 0.3,
+                oya: 0.4,
+                obatala: 0.1,
+                oshun: 0.1,
+                shango: 0.9,
+                yemoja: 0.1,
             },
             "yemoja" | "yemanja" => OrishaVector {
-                esu: 0.1, ogun: 0.1, oya: 0.2, obatala: 0.2, oshun: 0.3, shango: 0.1, yemoja: 0.9,
+                esu: 0.1,
+                ogun: 0.1,
+                oya: 0.2,
+                obatala: 0.2,
+                oshun: 0.3,
+                shango: 0.1,
+                yemoja: 0.9,
             },
             _ => OrishaVector::default(),
         }
@@ -120,7 +162,8 @@ impl OrishaVector {
     }
 
     pub fn normalize(&mut self) {
-        let sum = self.esu + self.ogun + self.oya + self.obatala + self.oshun + self.shango + self.yemoja;
+        let sum =
+            self.esu + self.ogun + self.oya + self.obatala + self.oshun + self.shango + self.yemoja;
         if sum > 0.0 {
             self.scale(1.0 / sum);
         }

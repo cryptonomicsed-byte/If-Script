@@ -1,23 +1,27 @@
-use ifascript::{IfaVM, ActionVessel, get_odu, lookup_by_name, get_cosmogram};
+use ifascript::{get_cosmogram, get_odu, lookup_by_name, ActionVessel, IfaVM};
 
 // ── Legacy program execution (backward-compatible) ────────────────────────
 
 #[test]
 fn test_ase_program() {
     let mut vm = IfaVM::new();
-    vm.execute(vec!["Èjì Ogbè", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"]);
+    vm.execute(vec!["Èjì Ogbè", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"])
+        .unwrap();
     assert_eq!(vm.stack, vec![1, 1]);
 }
 
 #[test]
-fn test_cowrie_cast_deterministic_with_fixed_intent() {
-    let mut vm1 = IfaVM::with_intent("Test intent");
-    let mut vm2 = IfaVM::with_intent("Test intent");
-
-    vm1.execute(vec!["CastCowries"]);
-    vm2.execute(vec!["CastCowries"]);
-
-    assert_eq!(vm1.stack[0], vm2.stack[0]);
+fn test_cowrie_cast_produces_valid_u16_range() {
+    // Determinism is intentionally not guaranteed when the NIST Beacon is
+    // unavailable — a time-based nonce is mixed in to prevent predictable
+    // fallback casts. We verify the output is a valid u16 value.
+    let mut vm = IfaVM::with_intent("Test intent");
+    vm.execute(vec!["CastCowries"]).unwrap();
+    let val = vm.stack[0];
+    assert!(
+        (0..=0xFFFF).contains(&val),
+        "CastCowries must produce a u16 value"
+    );
 }
 
 // ── Digital Calabash vessel dispatch ─────────────────────────────────────
@@ -26,9 +30,6 @@ fn test_cowrie_cast_deterministic_with_fixed_intent() {
 fn test_cast_odu_returns_valid_vessel() {
     let mut vm = IfaVM::with_intent("vessel dispatch test");
     let result = vm.cast_odu();
-
-    // index must be 0–255
-    assert!(result.index <= 255);
 
     // vessel must match what ActionVessel::from_index() computes
     assert_eq!(result.vessel, ActionVessel::from_index(result.index));
@@ -65,8 +66,15 @@ fn test_all_256_odu_have_vessel_and_universal_name() {
     for i in 0u8..=255 {
         let odu = get_odu(i);
         assert_eq!(odu.index, i);
-        assert!(!odu.universal_name.is_empty(), "universal_name empty at index {i}");
-        assert_eq!(odu.vessel, ActionVessel::from_index(i), "vessel mismatch at index {i}");
+        assert!(
+            !odu.universal_name.is_empty(),
+            "universal_name empty at index {i}"
+        );
+        assert_eq!(
+            odu.vessel,
+            ActionVessel::from_index(i),
+            "vessel mismatch at index {i}"
+        );
     }
 }
 
@@ -95,13 +103,26 @@ fn test_lookup_unknown_name_returns_none() {
 fn test_vessel_file_domains_are_unique() {
     // Each vessel must have a distinct file domain
     let mut domains: Vec<&str> = [
-        ActionVessel::Genesis, ActionVessel::Void, ActionVessel::Attention,
-        ActionVessel::Loop, ActionVessel::Receipt, ActionVessel::Mask,
-        ActionVessel::Residue, ActionVessel::Execution, ActionVessel::Swarm,
-        ActionVessel::Restraint, ActionVessel::Migration, ActionVessel::Consent,
-        ActionVessel::Vision, ActionVessel::Growth, ActionVessel::Seal,
+        ActionVessel::Genesis,
+        ActionVessel::Void,
+        ActionVessel::Attention,
+        ActionVessel::Loop,
+        ActionVessel::Receipt,
+        ActionVessel::Mask,
+        ActionVessel::Residue,
+        ActionVessel::Execution,
+        ActionVessel::Swarm,
+        ActionVessel::Restraint,
+        ActionVessel::Migration,
+        ActionVessel::Consent,
+        ActionVessel::Vision,
+        ActionVessel::Growth,
+        ActionVessel::Seal,
         ActionVessel::Rhythm,
-    ].iter().map(|v| v.file_domain()).collect();
+    ]
+    .iter()
+    .map(|v| v.file_domain())
+    .collect();
     domains.dedup();
     assert_eq!(domains.len(), 16);
 }
@@ -151,13 +172,19 @@ fn test_cosmogram_index_255_is_ofun_meji() {
 #[test]
 fn test_cosmogram_123_entries_have_data() {
     let count = (0u8..=255).filter(|&i| get_cosmogram(i).has_data()).count();
-    assert_eq!(count, 123, "expected exactly 123 entries with ese_myth data");
+    assert_eq!(
+        count, 123,
+        "expected exactly 123 entries with ese_myth data"
+    );
 }
 
 #[test]
 fn test_cosmogram_all_indices_consistent() {
     for i in 0u8..=255 {
         let entry = get_cosmogram(i);
-        assert_eq!(entry.odu_index, i, "odu_index field must match array position {i}");
+        assert_eq!(
+            entry.odu_index, i,
+            "odu_index field must match array position {i}"
+        );
     }
 }

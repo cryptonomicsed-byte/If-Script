@@ -1,6 +1,6 @@
+use crate::soul::MemoryTier;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use crate::soul::MemoryTier;
 
 // ── Day ────────────────────────────────────────────────────────────────────────
 
@@ -165,41 +165,62 @@ impl CosmogramEngine {
     pub fn new() -> Self {
         let mut tier_configs = HashMap::new();
 
-        tier_configs.insert(1, TierConfig {
-            max_odu: 255,
-            default_memory: MemoryTier::Tier3Contributable,
-            default_access: AccessClass::Public,
-        });
-        tier_configs.insert(2, TierConfig {
-            max_odu: 2047,
-            default_memory: MemoryTier::Tier2Operational,
-            default_access: AccessClass::Sealed,
-        });
-        tier_configs.insert(3, TierConfig {
-            max_odu: 4095,
-            default_memory: MemoryTier::Tier2Operational,
-            default_access: AccessClass::Sealed,
-        });
-        tier_configs.insert(4, TierConfig {
-            max_odu: 8191,
-            default_memory: MemoryTier::Tier1Deep,
-            default_access: AccessClass::Council,
-        });
-        tier_configs.insert(5, TierConfig {
-            max_odu: 16383,
-            default_memory: MemoryTier::Tier1Deep,
-            default_access: AccessClass::Council,
-        });
-        tier_configs.insert(6, TierConfig {
-            max_odu: 32767,
-            default_memory: MemoryTier::Tier0Existential,
-            default_access: AccessClass::MachineOnly,
-        });
-        tier_configs.insert(7, TierConfig {
-            max_odu: 65535,
-            default_memory: MemoryTier::Tier0Existential,
-            default_access: AccessClass::MachineOnly,
-        });
+        tier_configs.insert(
+            1,
+            TierConfig {
+                max_odu: 255,
+                default_memory: MemoryTier::Tier3Contributable,
+                default_access: AccessClass::Public,
+            },
+        );
+        tier_configs.insert(
+            2,
+            TierConfig {
+                max_odu: 2047,
+                default_memory: MemoryTier::Tier2Operational,
+                default_access: AccessClass::Sealed,
+            },
+        );
+        tier_configs.insert(
+            3,
+            TierConfig {
+                max_odu: 4095,
+                default_memory: MemoryTier::Tier2Operational,
+                default_access: AccessClass::Sealed,
+            },
+        );
+        tier_configs.insert(
+            4,
+            TierConfig {
+                max_odu: 8191,
+                default_memory: MemoryTier::Tier1Deep,
+                default_access: AccessClass::Council,
+            },
+        );
+        tier_configs.insert(
+            5,
+            TierConfig {
+                max_odu: 16383,
+                default_memory: MemoryTier::Tier1Deep,
+                default_access: AccessClass::Council,
+            },
+        );
+        tier_configs.insert(
+            6,
+            TierConfig {
+                max_odu: 32767,
+                default_memory: MemoryTier::Tier0Existential,
+                default_access: AccessClass::MachineOnly,
+            },
+        );
+        tier_configs.insert(
+            7,
+            TierConfig {
+                max_odu: 65535,
+                default_memory: MemoryTier::Tier0Existential,
+                default_access: AccessClass::MachineOnly,
+            },
+        );
 
         CosmogramEngine {
             base_entropy: Vec::new(),
@@ -240,15 +261,14 @@ impl CosmogramEngine {
         use sha2::{Digest, Sha256};
         let mut hasher = Sha256::new();
         hasher.update(&self.base_entropy);
-        hasher.update(&odu_id.to_le_bytes());
-        hasher.update(&[tier]);
+        hasher.update(odu_id.to_le_bytes());
+        hasher.update([tier]);
         hasher.update(format!("{:?}", day).as_bytes());
-        hasher.update(&timestamp.to_le_bytes());
+        hasher.update(timestamp.to_le_bytes());
         let entropy_hash = format!("0x{}", hex::encode(hasher.finalize()));
 
         let window_open = self.is_window_open(&day, timestamp);
-        let dt = chrono::DateTime::from_timestamp(timestamp, 0)
-            .unwrap_or_else(chrono::Utc::now);
+        let dt = chrono::DateTime::from_timestamp(timestamp, 0).unwrap_or_else(chrono::Utc::now);
 
         Ok(CosmogramState {
             odu_id,

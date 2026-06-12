@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use crate::cosmogram::Day;
 use crate::hermetic::HermeticPrinciple;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 pub mod julia_bridge;
 
@@ -36,9 +36,7 @@ impl ResonancePacket {
     pub fn gate_bias(&self) -> HashMap<HermeticPrinciple, f64> {
         self.gate_bias_raw
             .iter()
-            .filter_map(|(k, v)| {
-                k.parse::<HermeticPrinciple>().ok().map(|p| (p, *v))
-            })
+            .filter_map(|(k, v)| k.parse::<HermeticPrinciple>().ok().map(|p| (p, *v)))
             .collect()
     }
 
@@ -92,7 +90,9 @@ impl RitualCodex {
     }
 
     pub fn with_data_dir(path: impl Into<std::path::PathBuf>) -> Self {
-        RitualCodex { data_dir: Some(path.into()) }
+        RitualCodex {
+            data_dir: Some(path.into()),
+        }
     }
 
     /// Load day configuration from JSON file, if available
@@ -117,12 +117,9 @@ impl RitualCodex {
             packet.timestamp,
         )?;
 
-        let orisha_dominant = crate::orisha::OrishaVector::from_odu_day(
-            packet.odu_id,
-            &packet.day,
-        )
-        .dominant()
-        .map(|o| format!("{:?}", o));
+        let orisha_dominant = crate::orisha::OrishaVector::from_odu_day(packet.odu_id, &packet.day)
+            .dominant()
+            .map(|o| format!("{:?}", o));
 
         let receipt = ResonanceReceipt::new(
             packet,

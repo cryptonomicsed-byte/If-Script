@@ -1,7 +1,7 @@
 // ifascript/src/compiler/ast.rs
 // IfáScript Abstract Syntax Tree — cognitive skeleton for the compiler pipeline
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Program {
@@ -53,7 +53,12 @@ pub enum TypeExpr {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum PrimitiveType {
-    U8, U16, U32, U64, Bool, StringT,
+    U8,
+    U16,
+    U32,
+    U64,
+    Bool,
+    StringT,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -97,16 +102,16 @@ pub enum HermeticPrinciple {
 }
 
 impl HermeticPrinciple {
-    pub fn from_str(s: &str) -> Option<Self> {
+    pub fn parse(s: &str) -> Option<Self> {
         match s {
-            "mentalism"     => Some(Self::Mentalism),
-            "correspondence"=> Some(Self::Correspondence),
-            "vibration"     => Some(Self::Vibration),
-            "polarity"      => Some(Self::Polarity),
-            "rhythm"        => Some(Self::Rhythm),
-            "cause_effect"  => Some(Self::CauseEffect),
-            "gender"        => Some(Self::Gender),
-            _               => None,
+            "mentalism" => Some(Self::Mentalism),
+            "correspondence" => Some(Self::Correspondence),
+            "vibration" => Some(Self::Vibration),
+            "polarity" => Some(Self::Polarity),
+            "rhythm" => Some(Self::Rhythm),
+            "cause_effect" => Some(Self::CauseEffect),
+            "gender" => Some(Self::Gender),
+            _ => None,
         }
     }
 }
@@ -119,11 +124,11 @@ pub enum SabbathSpec {
 }
 
 impl SabbathSpec {
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s {
             "Saturday" => Self::Saturday,
-            "any"      => Self::Any,
-            other      => Self::Custom(other.to_string()),
+            "any" => Self::Any,
+            other => Self::Custom(other.to_string()),
         }
     }
 }
@@ -160,9 +165,19 @@ pub struct IfStmt {
 pub enum Expression {
     Literal(Literal),
     Ident(String),
-    OduLiteral { name: String, param: Option<Box<Literal>> },
-    BinaryOp { left: Box<Expression>, op: BinaryOp, right: Box<Expression> },
-    Call { name: String, args: Vec<Expression> },
+    OduLiteral {
+        name: String,
+        param: Option<Box<Literal>>,
+    },
+    BinaryOp {
+        left: Box<Expression>,
+        op: BinaryOp,
+        right: Box<Expression>,
+    },
+    Call {
+        name: String,
+        args: Vec<Expression>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,6 +190,12 @@ pub enum Literal {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum BinaryOp {
-    Add, Sub, Mul, Div,
-    Eq, Neq, Lt, Gt,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Eq,
+    Neq,
+    Lt,
+    Gt,
 }

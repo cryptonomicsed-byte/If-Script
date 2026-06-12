@@ -1,6 +1,5 @@
 /// Julia bridge stubs for future interop with Julia-based spiritual computation
 /// These will be activated when Julia FFI is enabled.
-
 use crate::ritual_codex::ResonancePacket;
 
 #[derive(Debug)]

@@ -3,14 +3,14 @@
 pub mod ast;
 pub mod parser;
 
-pub use parser::{IfaParser, ParsedInvocation, ParseError};
+pub use parser::{IfaParser, ParseError, ParsedInvocation};
 
-use ast::{Invocation, GateSpec, HermeticPrinciple, SabbathSpec};
+use ast::{GateSpec, HermeticPrinciple, Invocation, SabbathSpec};
 
 /// Lower a raw `ParsedInvocation` into a typed `ast::Invocation`
 pub fn lower_invocation(parsed: ParsedInvocation) -> Invocation {
     let gate = parsed.gate_principle.and_then(|p| {
-        let principle = HermeticPrinciple::from_str(&p)?;
+        let principle = HermeticPrinciple::parse(&p)?;
         Some(GateSpec {
             principle,
             threshold: parsed.gate_threshold.unwrap_or(0.5),
@@ -20,7 +20,7 @@ pub fn lower_invocation(parsed: ParsedInvocation) -> Invocation {
         ritual_name: parsed.ritual_name,
         gate,
         witness_quorum: parsed.witness_quorum,
-        sabbath: parsed.sabbath.map(|s| SabbathSpec::from_str(&s)),
+        sabbath: parsed.sabbath.map(|s| SabbathSpec::parse(&s)),
     }
 }
 
