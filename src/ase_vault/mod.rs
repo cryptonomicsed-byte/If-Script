@@ -142,10 +142,7 @@ fn vault() -> &'static HashMap<String, Value> {
 /// Returns `None` if the name is not recognised or the JSON is malformed.
 pub fn get_ese(odu_name: &str) -> Option<Vec<String>> {
     let entry = vault().get(odu_name)?;
-    let prescriptions = entry
-        .get("metadata")?
-        .get("prescriptions")?
-        .as_array()?;
+    let prescriptions = entry.get("metadata")?.get("prescriptions")?.as_array()?;
     Some(
         prescriptions
             .iter()
@@ -210,7 +207,10 @@ mod tests {
     #[test]
     fn eji_ogbe_prescriptions_non_empty() {
         let ese = get_ese("eji_ogbe").expect("eji_ogbe should be in vault");
-        assert!(!ese.is_empty(), "prescriptions should have at least one entry");
+        assert!(
+            !ese.is_empty(),
+            "prescriptions should have at least one entry"
+        );
         // Spot-check the first prescription contains expected content
         assert!(
             ese[0].contains("clarity") || ese[0].len() > 10,
@@ -246,20 +246,26 @@ mod tests {
     #[test]
     fn all_16_principals_present() {
         let names = [
-            "eji_ogbe", "oyeku_meji", "iwori_meji", "odi_meji",
-            "irosun_meji", "owonrin_meji", "obara_meji", "okanran_meji",
-            "ogunda_meji", "osa_meji", "ika_meji", "oturupon_meji",
-            "otura_meji", "irete_meji", "ose_meji", "ofun_meji",
+            "eji_ogbe",
+            "oyeku_meji",
+            "iwori_meji",
+            "odi_meji",
+            "irosun_meji",
+            "owonrin_meji",
+            "obara_meji",
+            "okanran_meji",
+            "ogunda_meji",
+            "osa_meji",
+            "ika_meji",
+            "oturupon_meji",
+            "otura_meji",
+            "irete_meji",
+            "ose_meji",
+            "ofun_meji",
         ];
         for name in &names {
-            assert!(
-                get_ese(name).is_some(),
-                "Missing prescriptions for: {name}"
-            );
-            assert!(
-                get_ese_myth(name).is_some(),
-                "Missing ese_myth for: {name}"
-            );
+            assert!(get_ese(name).is_some(), "Missing prescriptions for: {name}");
+            assert!(get_ese_myth(name).is_some(), "Missing ese_myth for: {name}");
         }
     }
 
