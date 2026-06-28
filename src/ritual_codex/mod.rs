@@ -56,6 +56,11 @@ pub struct ResonanceReceipt {
     pub violation_count: usize,
     pub receipt_hash: Option<String>,
     pub issued_at: chrono::DateTime<chrono::Utc>,
+    /// Resonance score computed by the Block Mesh Julia layer, when reachable.
+    /// `None` when no Julia service is configured (fail-open) — see
+    /// [`julia_bridge::resonance_for_packet`].
+    #[serde(default)]
+    pub resonance_score: Option<f64>,
 }
 
 impl ResonanceReceipt {
@@ -74,7 +79,14 @@ impl ResonanceReceipt {
             violation_count,
             receipt_hash: None,
             issued_at: chrono::Utc::now(),
+            resonance_score: None,
         }
+    }
+
+    /// Attach a Julia-computed resonance score to this receipt (builder style).
+    pub fn with_resonance_score(mut self, score: Option<f64>) -> Self {
+        self.resonance_score = score;
+        self
     }
 }
 
@@ -121,13 +133,19 @@ impl RitualCodex {
             .dominant()
             .map(|o| format!("{:?}", o));
 
+        // Ask the Block Mesh Julia layer to score this packet. Fail-open: when no
+        // service is configured (or it's unreachable), this is `None` and the
+        // receipt is still issued — the score is an enrichment, not a gate.
+        let resonance_score = julia_bridge::resonance_for_packet(&packet);
+
         let receipt = ResonanceReceipt::new(
             packet,
             validated.state.entropy_hash.clone(),
             orisha_dominant,
             validated.gates_passed,
             validated.violation_count,
-        );
+        )
+        .with_resonance_score(resonance_score);
 
         Ok(receipt)
     }
@@ -136,5 +154,50 @@ impl RitualCodex {
 impl Default for RitualCodex {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::cosmogram::CosmogramEngine;
+
+    #[test]
+    fn with_resonance_score_builder() {
+        let packet = ResonancePacket::new(0, 1, Day::Wednesday, 0, "x");
+        let receipt = ResonanceReceipt::new(packet, "hash".into(), None, true, 0)
+            .with_resonance_score(Some(0.42));
+        assert_eq!(receipt.resonance_score, Some(0.42));
+    }
+
+    #[test]
+    fn resonance_score_serde_defaults_to_none() {
+        // A receipt serialized before this field existed (key absent) must still
+        // deserialize — `#[serde(default)]` keeps older receipts readable.
+        let packet = ResonancePacket::new(0, 1, Day::Wednesday, 0, "x");
+        let receipt = ResonanceReceipt::new(packet, "hash".into(), None, true, 0);
+        let mut value = serde_json::to_value(&receipt).unwrap();
+        value
+            .as_object_mut()
+            .unwrap()
+            .remove("resonance_score")
+            .expect("field should be present when serialized");
+        let parsed: ResonanceReceipt = serde_json::from_value(value).unwrap();
+        assert!(parsed.resonance_score.is_none());
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn cast_resonance_scores_none_without_julia() {
+        // No Julia service configured → fail-open: receipt issued, score is None.
+        std::env::remove_var("JULIA_URL");
+        std::env::remove_var("OSUN_URL");
+        let codex = RitualCodex::new();
+        let engine = CosmogramEngine::new();
+        let packet = ResonancePacket::new(0, 1, Day::Wednesday, 0, "seek wisdom");
+        let receipt = codex
+            .cast_resonance(packet, &engine)
+            .expect("cast should succeed for tier 1 / base Odù 0");
+        assert!(receipt.resonance_score.is_none());
     }
 }
