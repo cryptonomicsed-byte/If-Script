@@ -29,7 +29,7 @@ pub use odu::ActionVessel;
 pub use odu::{get_odu, get_odu_by_binary, lookup_by_name, Odu, ODU_SET};
 
 // Cosmogram — ese myth, sacred metadata, hermetic annotations
-pub use compiler::{compile_invocations, IfaParser, ParseError, ParsedInvocation};
+pub use compiler::{compile_invocations, compile_program, IfaParser, ParseError, ParsedInvocation};
 pub use cosmogram::{
     get_cosmogram, tier_max_odu, ConsensusLevel, CosmogramEngine, CosmogramState, OduCosmos,
     COSMOGRAM,

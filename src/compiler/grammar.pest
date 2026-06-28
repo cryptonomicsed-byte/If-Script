@@ -29,7 +29,7 @@ gate_spec    = { hermetic_principle ~ ":" ~ number }
 witness_spec = { "witness" ~ number }
 sabbath_spec = { "Saturday" | "any" | string }
 
-// === Invocation (only statement type for v0.2) ===
+// === Invocation ===
 invocation = {
     "invoke" ~ ident ~
     ("with" ~ gate_spec)? ~
@@ -38,5 +38,28 @@ invocation = {
     ";"
 }
 
+// === Definitions (v0.3): odù bindings and rituals ===
+// Òdù names are capitalised (Ogbe, Oyeku, …); prescriptions are named actions
+// with optional literal arguments.
+odu_name     = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "_")* }
+literal      = { string | number | ident }
+literal_list = { literal ~ ("," ~ literal)* }
+prescription = { ident ~ ("(" ~ literal_list? ~ ")")? ~ ";" }
+
+// odù Ogbe<binding> { prescription* }
+odu_def = {
+    "odù" ~ odu_name ~ "<" ~ ident ~ ">" ~
+    "{" ~ prescription* ~ "}"
+}
+
+// ritual name(params) { prescription* }
+type_expr  = { "u8" | "u16" | "u32" | "u64" | "bool" | "string" | ident }
+param      = { ident ~ ":" ~ type_expr }
+param_list = { param ~ ("," ~ param)* }
+ritual_def = {
+    "ritual" ~ ident ~ "(" ~ param_list? ~ ")" ~
+    "{" ~ prescription* ~ "}"
+}
+
 // === Program ===
-program = { SOI ~ invocation* ~ EOI }
+program = { SOI ~ (odu_def | ritual_def | invocation)* ~ EOI }

@@ -5,6 +5,11 @@ use pest::Parser;
 use pest_derive::Parser;
 use thiserror::Error;
 
+use crate::compiler::ast::{
+    Definition, Literal, OduDef, Param, PrescriptionStmt, PrimitiveType, RitualDef, Statement,
+    TypeExpr,
+};
+
 #[derive(Parser)]
 #[grammar = "src/compiler/grammar.pest"]
 pub struct IfaParser;
@@ -38,6 +43,144 @@ impl IfaParser {
             .filter(|p| p.as_rule() == Rule::invocation)
             .map(parse_invocation)
             .collect()
+    }
+
+    /// Parse a full program into typed definitions and raw invocations.
+    /// Definitions (`odù …`, `ritual …`) populate the AST directly; invocations
+    /// are returned raw for the caller to lower.
+    #[allow(clippy::type_complexity)]
+    pub fn parse_definitions(
+        input: &str,
+    ) -> Result<(Vec<Definition>, Vec<ParsedInvocation>), ParseError> {
+        let program = Self::parse(Rule::program, input)?
+            .next()
+            .expect("program rule always present");
+
+        let mut definitions = Vec::new();
+        let mut invocations = Vec::new();
+        for pair in program.into_inner() {
+            match pair.as_rule() {
+                Rule::odu_def => definitions.push(Definition::Odu(parse_odu_def(pair))),
+                Rule::ritual_def => definitions.push(Definition::Ritual(parse_ritual_def(pair))),
+                Rule::invocation => invocations.push(parse_invocation(pair)?),
+                _ => {}
+            }
+        }
+        Ok((definitions, invocations))
+    }
+}
+
+fn unquote(s: &str) -> String {
+    if s.len() >= 2 && s.starts_with('"') && s.ends_with('"') {
+        s[1..s.len() - 1].replace("\\\"", "\"")
+    } else {
+        s.to_string()
+    }
+}
+
+fn parse_literal(pair: pest::iterators::Pair<Rule>) -> Literal {
+    let raw = pair.as_str().to_string();
+    match pair.into_inner().next() {
+        Some(p) => match p.as_rule() {
+            Rule::string => Literal::Str(unquote(p.as_str())),
+            Rule::number => Literal::Number(p.as_str().parse().unwrap_or(0.0)),
+            Rule::ident => Literal::OduName(p.as_str().to_string()),
+            _ => Literal::Str(p.as_str().to_string()),
+        },
+        None => Literal::Str(raw),
+    }
+}
+
+fn parse_prescription(pair: pest::iterators::Pair<Rule>) -> PrescriptionStmt {
+    let mut action = String::new();
+    let mut args = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::ident => action = inner.as_str().to_string(),
+            Rule::literal_list => {
+                for lit in inner.into_inner() {
+                    if lit.as_rule() == Rule::literal {
+                        args.push(parse_literal(lit));
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    PrescriptionStmt { action, args }
+}
+
+fn parse_odu_def(pair: pest::iterators::Pair<Rule>) -> OduDef {
+    let mut name = String::new();
+    let mut type_param = String::new();
+    let mut prescriptions = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::odu_name => name = inner.as_str().to_string(),
+            Rule::ident => type_param = inner.as_str().to_string(),
+            Rule::prescription => prescriptions.push(parse_prescription(inner)),
+            _ => {}
+        }
+    }
+    OduDef {
+        name,
+        type_param,
+        prescriptions,
+    }
+}
+
+fn parse_type_expr(s: &str) -> TypeExpr {
+    match s {
+        "u8" => TypeExpr::Primitive(PrimitiveType::U8),
+        "u16" => TypeExpr::Primitive(PrimitiveType::U16),
+        "u32" => TypeExpr::Primitive(PrimitiveType::U32),
+        "u64" => TypeExpr::Primitive(PrimitiveType::U64),
+        "bool" => TypeExpr::Primitive(PrimitiveType::Bool),
+        "string" => TypeExpr::Primitive(PrimitiveType::StringT),
+        other => TypeExpr::Generic {
+            name: other.to_string(),
+            param: String::new(),
+        },
+    }
+}
+
+fn parse_param_list(pair: pest::iterators::Pair<Rule>) -> Vec<Param> {
+    let mut params = Vec::new();
+    for p in pair.into_inner() {
+        if p.as_rule() != Rule::param {
+            continue;
+        }
+        let mut name = String::new();
+        let mut typ = TypeExpr::Primitive(PrimitiveType::StringT);
+        for inner in p.into_inner() {
+            match inner.as_rule() {
+                Rule::ident => name = inner.as_str().to_string(),
+                Rule::type_expr => typ = parse_type_expr(inner.as_str()),
+                _ => {}
+            }
+        }
+        params.push(Param { name, typ });
+    }
+    params
+}
+
+fn parse_ritual_def(pair: pest::iterators::Pair<Rule>) -> RitualDef {
+    let mut name = String::new();
+    let mut params = Vec::new();
+    let mut body = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::ident => name = inner.as_str().to_string(),
+            Rule::param_list => params = parse_param_list(inner),
+            Rule::prescription => body.push(Statement::Prescription(parse_prescription(inner))),
+            _ => {}
+        }
+    }
+    RitualDef {
+        name,
+        params,
+        attributes: Vec::new(),
+        body,
     }
 }
 
@@ -206,5 +349,67 @@ mod tests {
     #[test]
     fn missing_semicolon_fails() {
         assert!(IfaParser::parse_program("invoke ritual").is_err());
+    }
+
+    // ── definitions (v0.3) ──────────────────────────────────────────────
+
+    #[test]
+    fn parse_odu_definition() {
+        let src = r#"
+            odù Ogbe<dawn> {
+                offer("coconut", "water");
+                meditate;
+            }
+        "#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert!(invs.is_empty());
+        assert_eq!(defs.len(), 1);
+        match &defs[0] {
+            Definition::Odu(o) => {
+                assert_eq!(o.name, "Ogbe");
+                assert_eq!(o.type_param, "dawn");
+                assert_eq!(o.prescriptions.len(), 2);
+                assert_eq!(o.prescriptions[0].action, "offer");
+                assert_eq!(o.prescriptions[0].args.len(), 2);
+                assert_eq!(o.prescriptions[1].action, "meditate");
+            }
+            other => panic!("expected Odu def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_ritual_definition_with_params() {
+        let src = r#"
+            ritual dawn_rite(agent: string, depth: u8) {
+                light("candle");
+                seal;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        assert_eq!(defs.len(), 1);
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.name, "dawn_rite");
+                assert_eq!(r.params.len(), 2);
+                assert_eq!(r.params[0].name, "agent");
+                assert_eq!(r.params[1].name, "depth");
+                assert_eq!(r.body.len(), 2);
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn definitions_and_invocations_mix() {
+        let src = r#"
+            odù Oyeku<dusk> { release; }
+            invoke dawn_rite with rhythm:0.8;
+        "#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert_eq!(defs.len(), 1);
+        assert_eq!(invs.len(), 1);
+        assert_eq!(invs[0].ritual_name, "dawn_rite");
+        // The legacy invocation-only API still sees the invocation.
+        assert_eq!(IfaParser::parse_program(src).unwrap().len(), 1);
     }
 }
