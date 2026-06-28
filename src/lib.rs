@@ -1,4 +1,5 @@
 pub mod ase_vault;
+pub mod calabash;
 pub mod compiler;
 pub mod cosmogram;
 pub mod ebo;
@@ -28,4 +29,14 @@ pub use odu::{get_odu, get_odu_by_binary, lookup_by_name, Odu, ODU_SET};
 
 // Cosmogram — ese myth, sacred metadata, hermetic annotations
 pub use compiler::{compile_invocations, IfaParser, ParseError, ParsedInvocation};
-pub use cosmogram::{get_cosmogram, CosmogramEngine, CosmogramState, OduCosmos, COSMOGRAM};
+pub use cosmogram::{
+    get_cosmogram, tier_max_odu, ConsensusLevel, CosmogramEngine, CosmogramState, OduCosmos,
+    COSMOGRAM,
+};
+
+// Digital Calabash scaling — 256 base Odù → 65,536 via composition,
+// gated by experience and ratified by consensus.
+pub use calabash::scaling::{tier_for_xp, AgentExperience, ConsensusLedger};
+pub use calabash::{
+    cast as cast_scaled, compose_id, decompose, resolve, AccessDenied, ComposedOdu,
+};
