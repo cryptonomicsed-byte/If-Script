@@ -7,6 +7,7 @@ pub mod entropy;
 pub mod error;
 pub mod field;
 pub mod hermetic;
+pub mod manifesto;
 pub mod odu;
 pub mod orisha;
 pub mod receipt;
@@ -40,3 +41,6 @@ pub use calabash::scaling::{tier_for_xp, AgentExperience, ConsensusLedger};
 pub use calabash::{
     cast as cast_scaled, compose_id, decompose, resolve, AccessDenied, ComposedOdu,
 };
+
+// Living Manifesto — Odù-backed principles, ratified by consensus.
+pub use manifesto::{Clause, Manifesto};
