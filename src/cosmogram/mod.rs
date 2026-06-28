@@ -60,13 +60,29 @@ pub enum AccessClass {
 
 // ── ConsensusLevel + GovernanceMeta ───────────────────────────────────────────
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ConsensusLevel {
     Individual,
     Swarm,
     Council,
     Canonical,
+}
+
+/// Canonical Odù ceiling for an agent tier (1–7). Tier 1 sees only the base 256
+/// Digital Calabash; each higher tier widens the accessible u16 Odù space, up to
+/// the full 65,536 at tier 7. Single source of truth shared by the cosmogram
+/// engine and the `calabash` scaling layer.
+pub const fn tier_max_odu(tier: u8) -> u16 {
+    match tier {
+        0 | 1 => 255,
+        2 => 2047,
+        3 => 4095,
+        4 => 8191,
+        5 => 16383,
+        6 => 32767,
+        _ => 65535,
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -168,7 +184,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             1,
             TierConfig {
-                max_odu: 255,
+                max_odu: tier_max_odu(1),
                 default_memory: MemoryTier::Tier3Contributable,
                 default_access: AccessClass::Public,
             },
@@ -176,7 +192,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             2,
             TierConfig {
-                max_odu: 2047,
+                max_odu: tier_max_odu(2),
                 default_memory: MemoryTier::Tier2Operational,
                 default_access: AccessClass::Sealed,
             },
@@ -184,7 +200,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             3,
             TierConfig {
-                max_odu: 4095,
+                max_odu: tier_max_odu(3),
                 default_memory: MemoryTier::Tier2Operational,
                 default_access: AccessClass::Sealed,
             },
@@ -192,7 +208,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             4,
             TierConfig {
-                max_odu: 8191,
+                max_odu: tier_max_odu(4),
                 default_memory: MemoryTier::Tier1Deep,
                 default_access: AccessClass::Council,
             },
@@ -200,7 +216,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             5,
             TierConfig {
-                max_odu: 16383,
+                max_odu: tier_max_odu(5),
                 default_memory: MemoryTier::Tier1Deep,
                 default_access: AccessClass::Council,
             },
@@ -208,7 +224,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             6,
             TierConfig {
-                max_odu: 32767,
+                max_odu: tier_max_odu(6),
                 default_memory: MemoryTier::Tier0Existential,
                 default_access: AccessClass::MachineOnly,
             },
@@ -216,7 +232,7 @@ impl CosmogramEngine {
         tier_configs.insert(
             7,
             TierConfig {
-                max_odu: 65535,
+                max_odu: tier_max_odu(7),
                 default_memory: MemoryTier::Tier0Existential,
                 default_access: AccessClass::MachineOnly,
             },
