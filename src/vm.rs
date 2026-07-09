@@ -14,8 +14,8 @@ pub const MAX_STACK_DEPTH: usize = 1024;
 /// Output of a cowrie cast for low-tier agents.
 ///
 /// Low-tier agents receive only this struct — the vessel, the universal name,
-/// and the prescription steps.  Full Odù metadata (archetype, orisha, taboos)
-/// is reserved for Èṣù/Hive-tier LARQL synthesis via `cast_odu_full()`.
+/// and the prescription steps.  Full Odù metadata (archetype, archetypes, taboos)
+/// is reserved for Steward/Hive-tier LARQL synthesis via `cast_odu_full()`.
 #[derive(Debug)]
 pub struct CastResult {
     /// Raw Odù index (0–255). Top nibble = wave/vessel, bottom nibble = modifier.
@@ -202,7 +202,7 @@ impl IfaVM {
         }
     }
 
-    /// **Hive/Èṣù-tier cast** — returns the full static Odù record.
+    /// **Hive/Steward-tier cast** — returns the full static Odù record.
     ///
     /// Only call from the LARQL synthesis layer. Low-tier agents should use
     /// `cast_odu()` instead.
@@ -211,7 +211,7 @@ impl IfaVM {
         get_odu(index)
     }
 
-    /// Look up any Odù by Yorùbá compound name or universal English name.
+    /// Look up any Odù by its domain-pair name or universal English name.
     ///
     /// Returns `None` for unrecognised names. Suitable for LARQL `DESCRIBE`
     /// queries and named-cast operations.

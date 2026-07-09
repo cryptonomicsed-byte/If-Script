@@ -12,7 +12,7 @@ fn test_stack_overflow_returns_error() {
         vm.stack.push(0);
     }
     // One more PushConst should return StackOverflow, not panic
-    let result = vm.execute(vec!["Èjì Ogbè"]);
+    let result = vm.execute(vec!["Genesis"]);
     assert!(
         matches!(result, Err(IfaError::StackOverflow { .. })),
         "expected StackOverflow, got: {:?}",

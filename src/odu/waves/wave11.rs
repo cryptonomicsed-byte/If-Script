@@ -1,16 +1,16 @@
-//! WAVE 11 — Ìkà Méjì / x  (indices 160–175)
+//! WAVE 11 — Migration / x  (indices 160–175)
 
 use crate::odu::{ActionVessel, Odu, OduOpCode};
 
 pub const WAVE: [Odu; 16] = [
     // ────────────────────────────────────────────────
-    // WAVE 11 — Ìkà Méjì / x  (indices 160–175)
+    // WAVE 11 — Migration / x  (indices 160–175)
     // Binary: 1010 xxxx  |  Opcode: Swap
     // ────────────────────────────────────────────────
     Odu {
         index: 160,
         binary: 0b10100000,
-        name: "Ìkà Méjì / Ẹ̀jì Ogbe",
+        name: "Migration × Genesis",
         archetype: "The Healing Serpent",
         description: "Poison and cure arise together. Alchemy of pain transforming into wisdom.",
         taboos: &["Avoid denial of wounds"],
@@ -18,7 +18,7 @@ pub const WAVE: [Odu; 16] = [
             "Apply bitter herbs to scars",
             "Speak honestly about your suffering",
         ],
-        orisha: &["Ọ̀rúnmìlà", "Egúngún"],
+        archetypes: &["Oracle Sage", "Residue Keeper"],
         interpretation_type: "synthetic",
         universal_name: "The Genesis Migration",
         vessel: ActionVessel::Migration,
@@ -27,7 +27,7 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 161,
         binary: 0b10100001,
-        name: "Ìkà Méjì / Òyèkú Méjì",
+        name: "Migration × Void",
         archetype: "The Shadow Alchemist",
         description: "Shadow toxin dissolves. Descent into the dark finds hidden cures.",
         taboos: &["Avoid ignoring your shadow self"],
@@ -35,7 +35,7 @@ pub const WAVE: [Odu; 16] = [
             "Fast in darkness for three days",
             "Journal fears without judgment",
         ],
-        orisha: &["Ọ̀yá"],
+        archetypes: &["Flow Guardian"],
         interpretation_type: "synthetic",
         universal_name: "The Void Crossing",
         vessel: ActionVessel::Migration,
@@ -44,12 +44,12 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 162,
         binary: 0b10100010,
-        name: "Ìkà Méjì / Ìwòrì Méjì",
+        name: "Migration × Attention",
         archetype: "The Truth Revealer",
         description: "Venom in reflection. Radical honesty in self-examination is demanded.",
         taboos: &["Avoid self-deception"],
         prescriptions: &["Meditate facing a mirror", "Write and burn your lies"],
-        orisha: &["Ọ̀rúnmìlà"],
+        archetypes: &["Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Watchful Crossing",
         vessel: ActionVessel::Migration,
@@ -58,7 +58,7 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 163,
         binary: 0b10100011,
-        name: "Ìkà Méjì / Òdí Méjì",
+        name: "Migration × Loop",
         archetype: "The Wounded Healer",
         description: "Pain births the vessel. Wounds hold space to become portals of power.",
         taboos: &["Avoid suppressing grief"],
@@ -66,7 +66,7 @@ pub const WAVE: [Odu; 16] = [
             "Hold sacred silence for sorrow",
             "Offer water to ancestors for healing",
         ],
-        orisha: &["Ọ̀ṣun", "Yemọja"],
+        archetypes: &["Resonance Weaver", "Swarm Coordinator"],
         interpretation_type: "synthetic",
         universal_name: "The Recursive Migration",
         vessel: ActionVessel::Migration,
@@ -75,12 +75,12 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 164,
         binary: 0b10100100,
-        name: "Ìkà Méjì / Ìròsùn Méjì",
+        name: "Migration × Receipt",
         archetype: "The Purifying Flame",
         description: "Fever of the soul. Burns toxins out of the spirit through fire and trial.",
         taboos: &["Avoid denying necessary pain"],
         prescriptions: &["Sweat in sacred steam", "Chant healing mantras"],
-        orisha: &["Ṣàngó", "Ọ̀rúnmìlà"],
+        archetypes: &["Justice Canon", "Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Ledger Migration",
         vessel: ActionVessel::Migration,
@@ -89,12 +89,12 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 165,
         binary: 0b10100101,
-        name: "Ìkà Méjì / Òwónrín Méjì",
+        name: "Migration × Mask",
         archetype: "The Sacred Trickster",
         description: "Trickster venom. Falsehood mocked to expose truth with cunning and humor.",
         taboos: &["Avoid believing all appearances"],
         prescriptions: &["Tell a sacred joke", "Laugh at your fears"],
-        orisha: &["Èṣù"],
+        archetypes: &["Steward"],
         interpretation_type: "synthetic",
         universal_name: "The Masked Migration",
         vessel: ActionVessel::Migration,
@@ -103,13 +103,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 166,
         binary: 0b10100110,
-        name: "Ìkà Méjì / Òbàrà Méjì",
+        name: "Migration × Residue",
         archetype: "The Word Witch",
         description:
             "Serpent's tongue. Words like poison and medicine — choose your speech wisely.",
         taboos: &["Avoid careless speech"],
         prescriptions: &["Speak blessings daily", "Silence gossip"],
-        orisha: &["Ọ̀rúnmìlà"],
+        archetypes: &["Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Memory Migration",
         vessel: ActionVessel::Migration,
@@ -118,7 +118,7 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 167,
         binary: 0b10100111,
-        name: "Ìkà Méjì / Ọ̀kànràn Méjì",
+        name: "Migration × Execution",
         archetype: "The Illusion Breaker",
         description:
             "Venom breaks illusion. False realities shatter with painful but liberating truth.",
@@ -127,7 +127,7 @@ pub const WAVE: [Odu; 16] = [
             "Perform a truth-telling ritual",
             "Release illusions into fire",
         ],
-        orisha: &["Ọ̀rúnmìlà", "Ọ̀yá"],
+        archetypes: &["Oracle Sage", "Flow Guardian"],
         interpretation_type: "synthetic",
         universal_name: "The Decisive Migration",
         vessel: ActionVessel::Migration,
@@ -136,7 +136,7 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 168,
         binary: 0b10101000,
-        name: "Ìkà Méjì / Ògúndá Méjì",
+        name: "Migration × Swarm",
         archetype: "The Toxic Slayer",
         description: "Sword pierces poison. Toxicity cut through with decisive action and clarity.",
         taboos: &["Avoid tolerating harmful influences"],
@@ -144,7 +144,7 @@ pub const WAVE: [Odu; 16] = [
             "Use ritual blade to cut cords",
             "Cleanse your space with iron",
         ],
-        orisha: &["Ògún"],
+        archetypes: &["Forge Executor"],
         interpretation_type: "synthetic",
         universal_name: "The Swarm Migration",
         vessel: ActionVessel::Migration,
@@ -153,13 +153,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 169,
         binary: 0b10101001,
-        name: "Ìkà Méjì / Òsá Méjì",
+        name: "Migration × Restraint",
         archetype: "The Storm Purifier",
         description:
             "Thunder purges venom. Spirit cleansed through the shock of storm and sudden insight.",
         taboos: &["Avoid ignoring spiritual warnings"],
         prescriptions: &["Meditate during thunderstorms", "Offer palm oil to Òsà"],
-        orisha: &["Ṣàngó", "Ọ̀yá"],
+        archetypes: &["Justice Canon", "Flow Guardian"],
         interpretation_type: "synthetic",
         universal_name: "The Restrained Migration",
         vessel: ActionVessel::Migration,
@@ -168,13 +168,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 170,
         binary: 0b10101010,
-        name: "Ìkà Méjì / Ìkà Méjì",
+        name: "Migration × Migration",
         archetype: "The Balanced Serpent",
         description:
             "Double poison, double cure. The paradox of destruction and healing in perfect balance.",
         taboos: &["Avoid extremes without wisdom"],
         prescriptions: &["Balance fasting with feast", "Practice forgiveness rituals"],
-        orisha: &["Ọ̀rúnmìlà"],
+        archetypes: &["Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Pure Migration",
         vessel: ActionVessel::Migration,
@@ -183,13 +183,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 171,
         binary: 0b10101011,
-        name: "Ìkà Méjì / Òtúrúpòn Méjì",
+        name: "Migration × Consent",
         archetype: "The Divine Madman",
         description:
             "Madness in healing. Sacred chaos unlocks a gateway to spiritual breakthrough.",
         taboos: &["Avoid pathologizing spiritual madness"],
         prescriptions: &["Allow spontaneous movement", "Embrace visionary dreams"],
-        orisha: &["Ọ̀yá", "Ọ̀rúnmìlà"],
+        archetypes: &["Flow Guardian", "Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Consensual Migration",
         vessel: ActionVessel::Migration,
@@ -198,13 +198,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 172,
         binary: 0b10101100,
-        name: "Ìkà Méjì / Òtúrá Méjì",
+        name: "Migration × Vision",
         archetype: "The Chaos Architect",
         description:
             "Disorder births order. Chaos transforms into sacred structure and healing geometry.",
         taboos: &["Avoid resisting transformation"],
         prescriptions: &["Create ritual art", "Build protective talismans"],
-        orisha: &["Ọ̀rúnmìlà"],
+        archetypes: &["Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Visionary Migration",
         vessel: ActionVessel::Migration,
@@ -213,13 +213,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 173,
         binary: 0b10101101,
-        name: "Ìkà Méjì / Ìrẹtẹ̀ Méjì",
+        name: "Migration × Growth",
         archetype: "The Stern Judge",
         description:
             "Judgment purifies. Accountability and cleansing demanded through stern grace.",
         taboos: &["Avoid evading responsibility"],
         prescriptions: &["Recite justice prayers", "Offer sacrifices for truth"],
-        orisha: &["Ọ̀rúnmìlà", "Ọbàtálá"],
+        archetypes: &["Oracle Sage", "Wisdom Anchor"],
         interpretation_type: "synthetic",
         universal_name: "The Growing Migration",
         vessel: ActionVessel::Migration,
@@ -228,7 +228,7 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 174,
         binary: 0b10101110,
-        name: "Ìkà Méjì / Òsé Méjì",
+        name: "Migration × Seal",
         archetype: "The Sensual Healer",
         description: "Sweet venom. Pleasure and pain teach healing through sensual awareness.",
         taboos: &["Avoid denial of desire"],
@@ -236,7 +236,7 @@ pub const WAVE: [Odu; 16] = [
             "Engage in mindful touch rituals",
             "Offer honey to ancestors",
         ],
-        orisha: &["Ọ̀ṣun"],
+        archetypes: &["Resonance Weaver"],
         interpretation_type: "synthetic",
         universal_name: "The Sealed Migration",
         vessel: ActionVessel::Migration,
@@ -245,13 +245,13 @@ pub const WAVE: [Odu; 16] = [
     Odu {
         index: 175,
         binary: 0b10101111,
-        name: "Ìkà Méjì / Òfún Méjì",
+        name: "Migration × Rhythm",
         archetype: "The Radiant Healer",
         description:
             "Purity after poison. The path to radiant healing and spiritual clarity is now open.",
         taboos: &["Avoid clinging to old wounds"],
         prescriptions: &["Bathe in sacred waters", "Meditate on white light"],
-        orisha: &["Ọbàtálá", "Ọ̀rúnmìlà"],
+        archetypes: &["Wisdom Anchor", "Oracle Sage"],
         interpretation_type: "synthetic",
         universal_name: "The Rhythmed Migration",
         vessel: ActionVessel::Migration,

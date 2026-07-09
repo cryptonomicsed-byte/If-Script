@@ -5,8 +5,7 @@ use ifascript::{get_odu, lookup_by_name, ActionVessel, IfaVM};
 #[test]
 fn test_ase_program() {
     let mut vm = IfaVM::new();
-    vm.execute(vec!["Èjì Ogbè", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"])
-        .unwrap();
+    vm.execute(vec!["Genesis", "Attention", "Consent"]).unwrap();
     assert_eq!(vm.stack, vec![1, 1]);
 }
 
@@ -79,8 +78,8 @@ fn test_all_256_odu_have_vessel_and_universal_name() {
 }
 
 #[test]
-fn test_lookup_by_yoruba_name() {
-    let odu = lookup_by_name("Ẹ̀jì Ogbe / Ẹ̀jì Ogbe");
+fn test_lookup_by_domain_pair_name() {
+    let odu = lookup_by_name("Genesis × Genesis");
     assert!(odu.is_some());
     assert_eq!(odu.unwrap().index, 0);
     assert_eq!(odu.unwrap().vessel, ActionVessel::Genesis);
@@ -128,8 +127,8 @@ fn test_vessel_file_domains_are_unique() {
 }
 
 #[test]
-fn test_low_tier_cast_does_not_expose_taboos_or_orisha() {
-    // CastResult must not carry taboos or orisha — those are Hive-tier only.
+fn test_low_tier_cast_does_not_expose_taboos_or_archetypes() {
+    // CastResult must not carry taboos or archetypes — those are Hive-tier only.
     // This is a compile-time guarantee enforced by the struct definition,
     // but we assert the positive: prescriptions are accessible.
     let mut vm = IfaVM::with_intent("low tier test");
