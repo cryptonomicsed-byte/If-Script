@@ -1,3 +1,4 @@
+pub mod archetype;
 pub mod ase_vault;
 pub mod calabash;
 pub mod compiler;
@@ -9,7 +10,6 @@ pub mod field;
 pub mod hermetic;
 pub mod manifesto;
 pub mod odu;
-pub mod orisha;
 pub mod receipt;
 pub mod ritual_codex;
 pub mod soul;

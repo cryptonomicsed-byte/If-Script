@@ -51,7 +51,7 @@ impl ResonancePacket {
 pub struct ResonanceReceipt {
     pub packet: ResonancePacket,
     pub entropy_hash: String,
-    pub orisha_dominant: Option<String>,
+    pub dominant_archetype: Option<String>,
     pub gates_passed: bool,
     pub violation_count: usize,
     pub receipt_hash: Option<String>,
@@ -67,14 +67,14 @@ impl ResonanceReceipt {
     pub fn new(
         packet: ResonancePacket,
         entropy_hash: String,
-        orisha_dominant: Option<String>,
+        dominant_archetype: Option<String>,
         gates_passed: bool,
         violation_count: usize,
     ) -> Self {
         ResonanceReceipt {
             packet,
             entropy_hash,
-            orisha_dominant,
+            dominant_archetype,
             gates_passed,
             violation_count,
             receipt_hash: None,
@@ -129,9 +129,10 @@ impl RitualCodex {
             packet.timestamp,
         )?;
 
-        let orisha_dominant = crate::orisha::OrishaVector::from_odu_day(packet.odu_id, &packet.day)
-            .dominant()
-            .map(|o| format!("{:?}", o));
+        let dominant_archetype =
+            crate::archetype::ArchetypeVector::from_odu_day(packet.odu_id, &packet.day)
+                .dominant()
+                .map(|o| format!("{:?}", o));
 
         // Ask the Block Mesh Julia layer to score this packet. Fail-open: when no
         // service is configured (or it's unreachable), this is `None` and the
@@ -141,7 +142,7 @@ impl RitualCodex {
         let receipt = ResonanceReceipt::new(
             packet,
             validated.state.entropy_hash.clone(),
-            orisha_dominant,
+            dominant_archetype,
             validated.gates_passed,
             validated.violation_count,
         )

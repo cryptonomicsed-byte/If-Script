@@ -113,7 +113,7 @@ impl FieldEngine {
             "tier": state.tier,
             "day": format!("{:?}", state.day),
             "window_open": state.window_open,
-            "dominant_orisha": state.orisha_vector.dominant().map(|o| format!("{:?}", o)),
+            "dominant_archetype": state.archetype_vector.dominant().map(|a| format!("{:?}", a)),
         });
         let event = FieldEvent::new(
             state.odu_id,

@@ -118,7 +118,7 @@ pub struct CosmogramState {
     pub day: Day,
     pub access_class: AccessClass,
     pub memory_tier: MemoryTier,
-    pub orisha_vector: crate::orisha::OrishaVector,
+    pub archetype_vector: crate::archetype::ArchetypeVector,
     pub governance: GovernanceMeta,
     pub threat: ThreatProfile,
     pub timestamp: chrono::DateTime<chrono::Utc>,
@@ -271,7 +271,7 @@ impl CosmogramEngine {
 
         let memory_tier = config.default_memory.clone();
         let access_class = config.default_access.clone();
-        let orisha_vector = crate::orisha::OrishaVector::from_odu_day(odu_id, &day);
+        let archetype_vector = crate::archetype::ArchetypeVector::from_odu_day(odu_id, &day);
 
         // Compute entropy hash
         use sha2::{Digest, Sha256};
@@ -292,7 +292,7 @@ impl CosmogramEngine {
             day,
             access_class,
             memory_tier,
-            orisha_vector,
+            archetype_vector,
             governance: GovernanceMeta {
                 consensus_level: ConsensusLevel::Individual,
                 zk_proof_required: tier >= 5,
