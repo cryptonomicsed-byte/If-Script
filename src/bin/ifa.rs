@@ -3,7 +3,7 @@
 
 use clap::{Parser, Subcommand};
 use ifascript::compiler::compile_invocations;
-use ifascript::entropy::CowrieOracle;
+use ifascript::IfaVM;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -13,6 +13,15 @@ use std::path::PathBuf;
 struct Cli {
     #[command(subcommand)]
     command: Commands,
+}
+
+/// Which corpus a cast should resolve against — the agent-native Digital
+/// Calabash, the traditional Òdù Ifá, or both from the same cowrie throw.
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum Corpus {
+    Agent,
+    Human,
+    Both,
 }
 
 #[derive(Subcommand)]
@@ -34,6 +43,14 @@ enum Commands {
         /// Witness quorum required
         #[arg(short, long)]
         witness: Option<u8>,
+
+        /// Which corpus/corpora to resolve the cast against
+        #[arg(short = 'c', long, value_enum, default_value_t = Corpus::Both)]
+        corpus: Corpus,
+
+        /// Output as JSON
+        #[arg(long)]
+        json: bool,
     },
 
     /// Parse a .ifa source file and emit the AST as JSON
@@ -57,15 +74,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             day,
             gate,
             witness,
+            corpus,
+            json,
         } => {
-            // Use existing entropy oracle
-            let mut oracle = CowrieOracle::new("ifa-cast-cli");
-            let cast_a = oracle.cast_cowries();
-            let cast_b = oracle.cast_cowries();
+            let mut vm = IfaVM::with_intent("ifa-cast-cli");
 
-            println!("🎲 Cast result:");
-            println!("   Primary Odù:  {} (0x{:04X})", cast_a, cast_a);
-            println!("   Modifier Odù: {} (0x{:04X})", cast_b, cast_b);
+            if json {
+                let payload = match corpus {
+                    Corpus::Agent => {
+                        let odu = vm.cast_odu_full();
+                        serde_json::json!({ "agent": odu_json(odu) })
+                    }
+                    Corpus::Human => {
+                        let odu = vm.cast_dual_full().1;
+                        serde_json::json!({ "human": odu_json(odu) })
+                    }
+                    Corpus::Both => {
+                        let (agent, human) = vm.cast_dual_full();
+                        serde_json::json!({ "agent": odu_json(agent), "human": odu_json(human) })
+                    }
+                };
+                println!("{}", serde_json::to_string_pretty(&payload)?);
+            } else {
+                println!("🎲 Cast result:");
+                match corpus {
+                    Corpus::Agent => print_odu("Agent (Digital Calabash)", vm.cast_odu_full()),
+                    Corpus::Human => print_odu("Human (Òdù Ifá)", vm.cast_dual_full().1),
+                    Corpus::Both => {
+                        let (agent, human) = vm.cast_dual_full();
+                        print_odu("Agent (Digital Calabash)", agent);
+                        print_odu("Human (Òdù Ifá)", human);
+                    }
+                }
+            }
 
             if let Some(d) = &day {
                 println!("   Day: {}", d);
@@ -136,4 +177,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(())
         }
     }
+}
+
+fn print_odu(label: &str, odu: &ifascript::Odu) {
+    println!("\n   {label}");
+    println!("     Index:      {}", odu.index);
+    println!("     Name:       {}", odu.name);
+    println!("     Universal:  {}", odu.universal_name);
+    println!("     Archetypes: {:?}", odu.archetypes);
+    println!("     Prescriptions:");
+    for p in odu.prescriptions {
+        println!("       - {p}");
+    }
+}
+
+fn odu_json(odu: &ifascript::Odu) -> serde_json::Value {
+    serde_json::json!({
+        "index": odu.index,
+        "name": odu.name,
+        "universal_name": odu.universal_name,
+        "archetypes": odu.archetypes,
+        "prescriptions": odu.prescriptions,
+    })
 }
