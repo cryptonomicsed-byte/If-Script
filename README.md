@@ -112,9 +112,35 @@ governance metadata.
 | Tier | Entry Point | Receives |
 |------|------------|---------|
 | Low-tier agent | `vm.cast_odu()` | `CastResult` — vessel, file domain, universal name, prescription steps |
-| Èṣù / Hive | `vm.cast_odu_full()` | Full `&'static Odu` — all corpus fields |
+| Steward / Hive | `vm.cast_odu_full()` | Full `&'static Odu` — all corpus fields |
 
-Low-tier agents never see taboos, orisha, or archetype metadata. That boundary is structural, enforced by the type system.
+Low-tier agents never see taboos, archetypes, or archetype metadata. That boundary is structural, enforced by the type system.
+
+### Dual corpus: Digital Calabash + Òdù Ifá
+
+There are two 256-entry corpora sharing one index/vessel/opcode structure —
+verified identical by a dedicated test — that differ only in vocabulary:
+
+| Corpus | Module | Vocabulary | Audience |
+|--------|--------|-----------|----------|
+| Digital Calabash | `odu` | Agent-native archetypes (Steward, Oracle Sage, Forge Executor, ...) | Agent-to-agent casts, internal state |
+| Òdù Ifá | `odu_ifa` | Traditional Yorùbá names and Òrìṣà (Ẹ̀jì Ogbe, Olódùmarè, Ọ̀rúnmìlà, ...) | Agent-to-human readings |
+
+A single cowrie throw resolves through *either* table by the same index, so
+one cast can carry both a reading for the agent and a reading to show a
+human:
+
+```rust
+use ifascript::IfaVM;
+
+let mut vm = IfaVM::with_intent("dual reading");
+let (agent, human) = vm.cast_dual_full();   // one entropy draw, same index
+assert_eq!(agent.index, human.index);
+println!("agent sees: {} ({:?})", agent.name, agent.archetypes);
+println!("human sees: {} ({:?})", human.name, human.archetypes);
+```
+
+`vm.cast_dual()` is the low-tier equivalent (`CastResult` pair, no taboos/archetypes exposed). Both corpora are `interpretation_type = "synthetic"` — neither is canonical ese Ifá; see [Ethics](#ethics).
 
 ### VM Opcodes
 
@@ -178,15 +204,16 @@ assert_eq!(odu.index, 255);
 
 | Path | Description |
 |------|-------------|
-| `src/odu/` | 256-Odù Digital Calabash corpus — `mod.rs` (types, `ODU_SET`, name index) + `waves/wave01..16.rs` (16 entries each, assembled at compile time with invariant checks) |
+| `src/odu/` | 256-Odù Digital Calabash corpus (agent-native) — `mod.rs` (types, `ODU_SET`, name index) + `waves/wave01..16.rs` (16 entries each, assembled at compile time with invariant checks) |
+| `src/odu_ifa/` | 256-Odù traditional Òdù Ifá corpus (human-facing) — structurally identical twin of `src/odu/`, Yorùbá vocabulary |
 | `src/calabash/` | Scaling layer — `mod.rs` (composition, `resolve`, `cast`) + `scaling.rs` (experience tiers, `ConsensusLedger`) |
-| `src/cosmogram/` | Tiered access engine — access class, memory tier, orisha vectors, governance, `tier_max_odu` |
-| `src/vm.rs` | `IfaVM`, `CastResult`, opcode executor, Ebo enforcement |
+| `src/cosmogram/` | Tiered access engine — access class, memory tier, archetype vectors, governance, `tier_max_odu` |
+| `src/vm.rs` | `IfaVM`, `CastResult`, opcode executor, Ebo enforcement, `cast_dual`/`cast_dual_full` |
 | `src/compiler/` | IfáScript language — `grammar.pest`, `parser.rs`, `ast.rs` (see status) |
 | `src/entropy.rs` | `CowrieOracle` — NIST Beacon + ChaCha20 fallback |
 | `src/ebo.rs` | Ethical exception handling |
-| `src/hermetic/`, `src/orisha/`, `src/ase_vault/` | Hermetic principle gates, orisha vectors, Àṣẹ Vault (16 principals from `data/16_principals/`) |
-| `src/ritual_codex/` | Resonance packets/receipts; `julia_bridge.rs` (Julia interop — stub) |
+| `src/hermetic/`, `src/archetype/`, `src/ase_vault/` | Hermetic principle gates, archetype vectors, Àṣẹ Vault (16 principals from `data/16_principals/`) |
+| `src/ritual_codex/` | Resonance packets/receipts; `julia_bridge.rs` (Julia interop) |
 | `src/field/`, `src/receipt/`, `src/soul/`, `src/zangbeto/` | Field packets, SHA3 receipt hashing, memory tiers, local red-team audit |
 | `docs/` | Formal grammar (`grammar.ebnf`), consolidated corpus + LARQL specs |
 | `data/16_principals/` | The 16 principal Odù as JSON, loaded by the Àṣẹ Vault |
@@ -197,14 +224,16 @@ assert_eq!(odu.index, 255);
 
 | Component | Status |
 |-----------|--------|
-| 256 Odù Digital Calabash corpus | ✅ Complete |
+| 256 Odù Digital Calabash corpus (agent-native) | ✅ Complete |
+| 256 Odù traditional Òdù Ifá corpus (human-facing) | ✅ Complete |
+| Dual cast (`cast_dual` / `cast_dual_full`) | ✅ Complete |
 | 16 Action Vessel system | ✅ Complete |
 | VM stack-based opcode execution | ✅ Complete |
 | Ebo ethical exception handling | ✅ Complete |
 | NIST Beacon entropy oracle | ✅ Complete |
 | `CastResult` / `cast_odu_full` / `lookup_by_name` | ✅ Complete |
 | Cosmogram tiered-access engine | ✅ Complete |
-| Hermetic gates · Orisha vectors · Àṣẹ Vault | ✅ Complete |
+| Hermetic gates · Archetype vectors · Àṣẹ Vault | ✅ Complete |
 | Ritual Codex (resonance packets/receipts) | ✅ Complete |
 | **256 → 65,536 composition + experience/consensus scaling** | ✅ Complete |
 | WASM compilation target | ✅ Complete (built in CI) |

@@ -10,6 +10,7 @@ pub mod field;
 pub mod hermetic;
 pub mod manifesto;
 pub mod odu;
+pub mod odu_ifa;
 pub mod receipt;
 pub mod ritual_codex;
 pub mod soul;
@@ -25,8 +26,12 @@ pub use vm::{CastResult, IfaVM};
 // 16 Action Vessels — primary architectural concept of the Digital Calabash
 pub use odu::ActionVessel;
 
-// Full Odù corpus access (Hive/Èṣù tier)
+// Full Odù corpus access (Hive/Steward tier) — Digital Calabash, agent-native
 pub use odu::{get_odu, get_odu_by_binary, lookup_by_name, Odu, ODU_SET};
+
+// The traditional Òdù Ifá corpus (same index/vessel/opcode structure as
+// `odu::ODU_SET`, Yorùbá vocabulary) — for agent-to-human readings.
+pub use odu_ifa::{get_odu_ifa, get_odu_ifa_by_binary, lookup_by_name_ifa, ODU_SET_IFA};
 
 // Cosmogram — tiered-access engine (gates casts by tier ceiling, memory tier,
 // access class, and governance metadata)

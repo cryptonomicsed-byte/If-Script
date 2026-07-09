@@ -1,4 +1,4 @@
-use ifascript::{get_odu, lookup_by_name, ActionVessel, IfaVM};
+use ifascript::{get_odu, get_odu_ifa, lookup_by_name, ActionVessel, IfaVM};
 
 // ── Legacy program execution (backward-compatible) ────────────────────────
 
@@ -136,4 +136,33 @@ fn test_low_tier_cast_does_not_expose_taboos_or_archetypes() {
     // prescriptions field exists and is a non-empty slice
     // (all 256 entries have at least one prescription)
     assert!(!result.prescriptions.is_empty());
+}
+
+// ── Dual corpus: Digital Calabash (agent) + Òdù Ifá (human) ───────────────
+
+#[test]
+fn test_cast_dual_shares_one_index_across_both_corpora() {
+    let mut vm = IfaVM::with_intent("dual cast test");
+    let (agent, human) = vm.cast_dual_full();
+    assert_eq!(agent.index, human.index);
+    assert_eq!(agent.vessel, human.vessel);
+    assert_eq!(agent.universal_name, human.universal_name);
+}
+
+#[test]
+fn test_cast_dual_low_tier_shares_one_index() {
+    let mut vm = IfaVM::with_intent("dual cast test low tier");
+    let (agent, human) = vm.cast_dual();
+    assert_eq!(agent.index, human.index);
+    assert_eq!(agent.vessel, human.vessel);
+}
+
+#[test]
+fn test_odu_ifa_agrees_with_digital_calabash_on_structure() {
+    for i in 0u8..=255 {
+        let agent = get_odu(i);
+        let human = get_odu_ifa(i);
+        assert_eq!(agent.vessel, human.vessel, "vessel mismatch at {i}");
+        assert_eq!(agent.opcode, human.opcode, "opcode mismatch at {i}");
+    }
 }
