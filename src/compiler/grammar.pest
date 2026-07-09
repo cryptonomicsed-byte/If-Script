@@ -61,5 +61,15 @@ ritual_def = {
     "{" ~ prescription* ~ "}"
 }
 
+// witness name: quorum @"oracle" @"anchor";
+// Declares a named witness set — quorum size, oracle endpoint, anchor
+// network — that an `invoke ... witness N` clause can be checked against.
+witness_def = {
+    "witness" ~ ident ~ ":" ~ number ~
+    "@" ~ string ~
+    "@" ~ string ~
+    ";"
+}
+
 // === Program ===
-program = { SOI ~ (odu_def | ritual_def | invocation)* ~ EOI }
+program = { SOI ~ (odu_def | ritual_def | witness_def | invocation)* ~ EOI }

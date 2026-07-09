@@ -237,9 +237,9 @@ assert_eq!(odu.index, 255);
 | Ritual Codex (resonance packets/receipts) | ✅ Complete |
 | **256 → 65,536 composition + experience/consensus scaling** | ✅ Complete |
 | WASM compilation target | ✅ Complete (built in CI) |
-| IfáScript language compiler | 🔄 `invoke` statements only; `ritual` / `odù` / `witness` definitions reserved but unimplemented |
+| IfáScript language compiler | 🔄 `invoke`, `odù`, `ritual`, and `witness` definitions parse; statement bodies are prescription-only (no `let`/`if`/`return`/expressions, `ritual` attributes, or `import` yet) |
 | LARQL synthesis engine | 🔄 Specified in `docs/consolidated/larql.md`; not yet in code |
-| Julia bridge (FFI) | 🔄 Stub — `call_julia_resonance` returns `None` until wired |
+| Julia bridge (FFI) | ✅ Complete — fail-open HTTP client to the Block Mesh resonance service, wired into `RitualCodex::cast_resonance` |
 
 ---
 

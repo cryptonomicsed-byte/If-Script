@@ -7,7 +7,7 @@ use thiserror::Error;
 
 use crate::compiler::ast::{
     Definition, Literal, OduDef, Param, PrescriptionStmt, PrimitiveType, RitualDef, Statement,
-    TypeExpr,
+    TypeExpr, WitnessDef,
 };
 
 #[derive(Parser)]
@@ -62,6 +62,7 @@ impl IfaParser {
             match pair.as_rule() {
                 Rule::odu_def => definitions.push(Definition::Odu(parse_odu_def(pair))),
                 Rule::ritual_def => definitions.push(Definition::Ritual(parse_ritual_def(pair))),
+                Rule::witness_def => definitions.push(Definition::Witness(parse_witness_def(pair))),
                 Rule::invocation => invocations.push(parse_invocation(pair)?),
                 _ => {}
             }
@@ -181,6 +182,26 @@ fn parse_ritual_def(pair: pest::iterators::Pair<Rule>) -> RitualDef {
         params,
         attributes: Vec::new(),
         body,
+    }
+}
+
+fn parse_witness_def(pair: pest::iterators::Pair<Rule>) -> WitnessDef {
+    let mut name = String::new();
+    let mut quorum = 0u8;
+    let mut strings = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::ident => name = inner.as_str().to_string(),
+            Rule::number => quorum = inner.as_str().parse().unwrap_or(0),
+            Rule::string => strings.push(unquote(inner.as_str())),
+            _ => {}
+        }
+    }
+    WitnessDef {
+        name,
+        quorum,
+        oracle: strings.first().cloned().unwrap_or_default(),
+        anchor: strings.get(1).cloned().unwrap_or_default(),
     }
 }
 
@@ -411,5 +432,40 @@ mod tests {
         assert_eq!(invs[0].ritual_name, "dawn_rite");
         // The legacy invocation-only API still sees the invocation.
         assert_eq!(IfaParser::parse_program(src).unwrap().len(), 1);
+    }
+
+    // ── witness definitions ──────────────────────────────────────────────
+
+    #[test]
+    fn parse_witness_definition() {
+        let src = r#"witness council: 3 @"https://oracle.example/v1" @"anchor.example/net";"#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert!(invs.is_empty());
+        assert_eq!(defs.len(), 1);
+        match &defs[0] {
+            Definition::Witness(w) => {
+                assert_eq!(w.name, "council");
+                assert_eq!(w.quorum, 3);
+                assert_eq!(w.oracle, "https://oracle.example/v1");
+                assert_eq!(w.anchor, "anchor.example/net");
+            }
+            other => panic!("expected Witness def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn witness_definition_mixes_with_odu_ritual_and_invocation() {
+        let src = r#"
+            witness council: 3 @"https://oracle.example/v1" @"anchor.example/net";
+            odù Ogbe<dawn> { meditate; }
+            ritual dawn_rite() { seal; }
+            invoke dawn_rite witness 3;
+        "#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert_eq!(defs.len(), 3);
+        assert_eq!(invs.len(), 1);
+        assert!(matches!(defs[0], Definition::Witness(_)));
+        assert!(matches!(defs[1], Definition::Odu(_)));
+        assert!(matches!(defs[2], Definition::Ritual(_)));
     }
 }
