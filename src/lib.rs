@@ -8,6 +8,7 @@ pub mod entropy;
 pub mod error;
 pub mod field;
 pub mod hermetic;
+pub mod larql;
 pub mod manifesto;
 pub mod odu;
 pub mod odu_ifa;
@@ -47,3 +48,6 @@ pub use calabash::{
 
 // Living Manifesto — Odù-backed principles, ratified by consensus.
 pub use manifesto::{Clause, Manifesto};
+
+// LARQL — query language over the Digital Calabash (DESCRIBE/VERIFY/PREPARE).
+pub use larql::{parse_query as parse_larql, LarqlAnswer, LarqlError, LarqlQuery};

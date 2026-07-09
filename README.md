@@ -210,6 +210,7 @@ assert_eq!(odu.index, 255);
 | `src/cosmogram/` | Tiered access engine — access class, memory tier, archetype vectors, governance, `tier_max_odu` |
 | `src/vm.rs` | `IfaVM`, `CastResult`, opcode executor, Ebo enforcement, `cast_dual`/`cast_dual_full` |
 | `src/compiler/` | IfáScript language — `grammar.pest`, `parser.rs`, `ast.rs` (see status) |
+| `src/larql/` | LARQL query language — `DESCRIBE`/`VERIFY`/`PREPARE` over the real corpus (see status) |
 | `src/entropy.rs` | `CowrieOracle` — NIST Beacon + ChaCha20 fallback |
 | `src/ebo.rs` | Ethical exception handling |
 | `src/hermetic/`, `src/archetype/`, `src/ase_vault/` | Hermetic principle gates, archetype vectors, Àṣẹ Vault (16 principals from `data/16_principals/`) |
@@ -238,7 +239,7 @@ assert_eq!(odu.index, 255);
 | **256 → 65,536 composition + experience/consensus scaling** | ✅ Complete |
 | WASM compilation target | ✅ Complete (built in CI) |
 | IfáScript language compiler | 🔄 `invoke`, `odù`, `ritual`, and `witness` definitions parse; statement bodies are prescription-only (no `let`/`if`/`return`/expressions, `ritual` attributes, or `import` yet) |
-| LARQL synthesis engine | 🔄 Specified in `docs/consolidated/larql.md`; not yet in code |
+| LARQL query language | 🔄 `DESCRIBE`/`VERIFY`/`PREPARE` implemented against the real corpus and `ActionVessel`; `WALK` (time-series) and `SYNTHESIZE`'s corpus-metadata filtering from `docs/consolidated/larql.md` deferred — that spec assumes fields (`confidence_baseline`, `sensitivity_level`) the real `Odu` struct doesn't have |
 | Julia bridge (FFI) | ✅ Complete — fail-open HTTP client to the Block Mesh resonance service, wired into `RitualCodex::cast_resonance` |
 
 ---

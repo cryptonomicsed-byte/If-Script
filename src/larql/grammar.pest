@@ -1,0 +1,26 @@
+// LARQL — query grammar. Bounded v0.1: DESCRIBE, VERIFY, PREPARE.
+// Path: src/larql/grammar.pest
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT    = _{ "//" ~ (!"\n" ~ ANY)* }
+
+ident       = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+vessel_name = @{ ASCII_ALPHA_UPPER ~ ASCII_ALPHA_LOWER* }
+string      = ${ "\"" ~ (("\\\"") | (!"\"" ~ ANY))* ~ "\"" }
+number      = @{ ASCII_DIGIT+ }
+
+operator = { "CONTAINS" | "=" }
+value    = { string | number }
+field    = { ident }
+condition = { field ~ operator ~ value }
+
+scale      = { "micro" | "meso" | "macro" }
+scale_list = { scale ~ ("," ~ scale)* }
+
+target = { number | string }
+
+describe_query = { "DESCRIBE" ~ target ~ ("AT" ~ "SCALE" ~ scale_list)? }
+verify_query   = { "VERIFY" ~ vessel_name ~ ("WHERE" ~ condition)? }
+prepare_query  = { "PREPARE" ~ ident ~ "CHECK" ~ ":" ~ vessel_name }
+
+larql_query = { SOI ~ (describe_query | verify_query | prepare_query) ~ EOI }
