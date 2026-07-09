@@ -28,12 +28,10 @@ pub use odu::ActionVessel;
 // Full Odù corpus access (Hive/Èṣù tier)
 pub use odu::{get_odu, get_odu_by_binary, lookup_by_name, Odu, ODU_SET};
 
-// Cosmogram — ese myth, sacred metadata, hermetic annotations
+// Cosmogram — tiered-access engine (gates casts by tier ceiling, memory tier,
+// access class, and governance metadata)
 pub use compiler::{compile_invocations, compile_program, IfaParser, ParseError, ParsedInvocation};
-pub use cosmogram::{
-    get_cosmogram, tier_max_odu, ConsensusLevel, CosmogramEngine, CosmogramState, OduCosmos,
-    COSMOGRAM,
-};
+pub use cosmogram::{tier_max_odu, ConsensusLevel, CosmogramEngine, CosmogramState};
 
 // Digital Calabash scaling — 256 base Odù → 65,536 via composition,
 // gated by experience and ratified by consensus.
