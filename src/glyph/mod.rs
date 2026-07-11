@@ -18,8 +18,8 @@
 
 use sha2::{Digest, Sha256};
 
-use crate::calabash::{cast as cast_scaled, resolve, AccessDenied, ComposedOdu};
 use crate::calabash::scaling::AgentExperience;
+use crate::calabash::{cast as cast_scaled, resolve, AccessDenied, ComposedOdu};
 use crate::vm::{CastResult, IfaVM};
 
 /// GIX-FOLD-v1 ranges (start, count): all valid, printable BMP scalars.
@@ -214,6 +214,9 @@ mod tests {
         bad.chunk = "forged".into();
         let cast = cast_with_memory(&mut vm, &[bad], &AgentExperience::new());
         assert_eq!(cast.residues_used, 0);
-        assert!(cast.composed_id < 256, "forged residue must not steer the cast");
+        assert!(
+            cast.composed_id < 256,
+            "forged residue must not steer the cast"
+        );
     }
 }
