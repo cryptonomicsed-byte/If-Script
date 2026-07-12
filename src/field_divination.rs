@@ -169,10 +169,14 @@ impl FieldDiviner {
         };
         let (ps, xs) = (quart(s_now), quart(s_then));
         let binary = (ps << 4) | xs;
-        let mut present = ChannelReading::default();
-        present.bounded = s_now;
-        let mut past = ChannelReading::default();
-        past.bounded = s_then;
+        let present = ChannelReading {
+            bounded: s_now,
+            ..Default::default()
+        };
+        let past = ChannelReading {
+            bounded: s_then,
+            ..Default::default()
+        };
         Ok(FieldCast {
             odu: get_odu_by_binary(binary),
             binary,
