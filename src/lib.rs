@@ -6,6 +6,9 @@ pub mod ebo;
 pub mod entropy;
 pub mod error;
 pub mod field;
+// Field divination needs blocking HTTP to reach the Waggle substrate —
+// native targets only, same gate as the NIST beacon fetch.
+#[cfg(not(target_arch = "wasm32"))]
 pub mod field_divination;
 pub mod hermetic;
 pub mod manifesto;
