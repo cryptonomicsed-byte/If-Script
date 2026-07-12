@@ -6,6 +6,7 @@ pub mod ebo;
 pub mod entropy;
 pub mod error;
 pub mod field;
+pub mod field_divination;
 pub mod hermetic;
 pub mod manifesto;
 pub mod odu;
