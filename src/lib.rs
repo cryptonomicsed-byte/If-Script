@@ -1,5 +1,4 @@
 pub mod archetype;
-pub mod ase_vault;
 pub mod calabash;
 pub mod compiler;
 pub mod cosmogram;
