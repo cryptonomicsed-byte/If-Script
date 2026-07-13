@@ -161,7 +161,7 @@ pub struct IfStmt {
     pub else_block: Option<Vec<Statement>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Expression {
     Literal(Literal),
     Ident(String),
@@ -180,7 +180,7 @@ pub enum Expression {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum Literal {
     Str(String),
     Number(f64),

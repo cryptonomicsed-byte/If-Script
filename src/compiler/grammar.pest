@@ -6,10 +6,12 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 COMMENT    = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" | "//" ~ (!"\n" ~ ANY)* }
 
 // === Reserved keywords — prevent future collisions ===
+// Keywords must be followed by non-alphanumeric to avoid matching prefixes in identifiers
 reserved_keyword = _{
-    "ritual" | "odù"  | "witness" | "invoke" | "settle" | "canon" |
-    "mentalism" | "correspondence" | "vibration" | "polarity" |
-    "rhythm" | "cause_effect" | "gender" | "with"
+    ("ritual" | "odù" | "witness" | "invoke" | "settle" | "canon" |
+     "mentalism" | "correspondence" | "vibration" | "polarity" |
+     "rhythm" | "cause_effect" | "gender" | "with" |
+     "let" | "if" | "else" | "return") ~ !(ASCII_ALPHANUMERIC | "_")
 }
 
 // === Identifiers: cannot start with a reserved keyword ===
@@ -52,13 +54,32 @@ odu_def = {
     "{" ~ prescription* ~ "}"
 }
 
-// ritual name(params) { prescription* }
+// ritual name(params) { statement* }
+// Statements: prescriptions, let bindings, if conditionals, returns
 type_expr  = { "u8" | "u16" | "u32" | "u64" | "bool" | "string" | ident }
 param      = { ident ~ ":" ~ type_expr }
 param_list = { param ~ ("," ~ param)* }
+
+// Expressions: literals, identifiers, binary ops, odu literals, function calls
+expr_term   = { odu_literal_expr | call_expr | "(" ~ expression ~ ")" | literal | ident }
+binary_op   = @{ "+" | "-" | "*" | "/" | "==" | "!=" | "<" | ">" }
+expression  = { expr_term ~ (binary_op ~ expr_term)* }
+
+odu_literal_expr = { "@" ~ odu_name ~ ("<" ~ literal ~ ">")? }
+call_expr   = { ident ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
+
+// Statements
+statement = {
+    let_stmt | if_stmt | return_stmt | prescription
+}
+
+let_stmt    = { "let" ~ ident ~ ":" ~ type_expr ~ "=" ~ expression ~ ";" }
+if_stmt     = { "if" ~ expression ~ "{" ~ statement* ~ "}" ~ ("else" ~ "{" ~ statement* ~ "}")? }
+return_stmt = { "return" ~ expression? ~ ";" }
+
 ritual_def = {
     "ritual" ~ ident ~ "(" ~ param_list? ~ ")" ~
-    "{" ~ prescription* ~ "}"
+    "{" ~ statement* ~ "}"
 }
 
 // witness name: quorum @"oracle" @"anchor";
