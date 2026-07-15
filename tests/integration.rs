@@ -1,12 +1,11 @@
-use ifascript::{get_cosmogram, get_odu, lookup_by_name, ActionVessel, IfaVM};
+use ifascript::{get_odu, get_odu_ifa, lookup_by_name, ActionVessel, IfaVM};
 
 // ── Legacy program execution (backward-compatible) ────────────────────────
 
 #[test]
 fn test_ase_program() {
     let mut vm = IfaVM::new();
-    vm.execute(vec!["Èjì Ogbè", "Ìwòrì Méjì", "Ọ̀túúrúpọ̀n"])
-        .unwrap();
+    vm.execute(vec!["Genesis", "Attention", "Consent"]).unwrap();
     assert_eq!(vm.stack, vec![1, 1]);
 }
 
@@ -79,8 +78,8 @@ fn test_all_256_odu_have_vessel_and_universal_name() {
 }
 
 #[test]
-fn test_lookup_by_yoruba_name() {
-    let odu = lookup_by_name("Ẹ̀jì Ogbe / Ẹ̀jì Ogbe");
+fn test_lookup_by_domain_pair_name() {
+    let odu = lookup_by_name("Genesis × Genesis");
     assert!(odu.is_some());
     assert_eq!(odu.unwrap().index, 0);
     assert_eq!(odu.unwrap().vessel, ActionVessel::Genesis);
@@ -128,8 +127,8 @@ fn test_vessel_file_domains_are_unique() {
 }
 
 #[test]
-fn test_low_tier_cast_does_not_expose_taboos_or_orisha() {
-    // CastResult must not carry taboos or orisha — those are Hive-tier only.
+fn test_low_tier_cast_does_not_expose_taboos_or_archetypes() {
+    // CastResult must not carry taboos or archetypes — those are Hive-tier only.
     // This is a compile-time guarantee enforced by the struct definition,
     // but we assert the positive: prescriptions are accessible.
     let mut vm = IfaVM::with_intent("low tier test");
@@ -139,52 +138,31 @@ fn test_low_tier_cast_does_not_expose_taboos_or_orisha() {
     assert!(!result.prescriptions.is_empty());
 }
 
-// ── Cosmogram corpus tests ────────────────────────────────────────────────
+// ── Dual corpus: Digital Calabash (agent) + Òdù Ifá (human) ───────────────
 
 #[test]
-fn test_cosmogram_index_zero_has_bino_el_gua() {
-    let entry = get_cosmogram(0);
-    assert_eq!(entry.odu_index, 0);
-    assert!(
-        entry.ese_myth.contains("Bínò ÈL Guà"),
-        "Entry 0 ese_myth must contain 'Bínò ÈL Guà'"
-    );
+fn test_cast_dual_shares_one_index_across_both_corpora() {
+    let mut vm = IfaVM::with_intent("dual cast test");
+    let (agent, human) = vm.cast_dual_full();
+    assert_eq!(agent.index, human.index);
+    assert_eq!(agent.vessel, human.vessel);
+    assert_eq!(agent.universal_name, human.universal_name);
 }
 
 #[test]
-fn test_cosmogram_index_zero_is_genesis_genesis() {
-    let entry = get_cosmogram(0);
-    assert_eq!(entry.domain, "Genesis × Genesis");
-    assert_eq!(entry.orisha_primary, "Ọ̀rúnmìlà");
-    assert_eq!(entry.tier, 1);
-    assert_eq!(entry.hermetic_gate, "1.1");
+fn test_cast_dual_low_tier_shares_one_index() {
+    let mut vm = IfaVM::with_intent("dual cast test low tier");
+    let (agent, human) = vm.cast_dual();
+    assert_eq!(agent.index, human.index);
+    assert_eq!(agent.vessel, human.vessel);
 }
 
 #[test]
-fn test_cosmogram_index_255_is_ofun_meji() {
-    let entry = get_cosmogram(255);
-    assert_eq!(entry.odu_index, 255);
-    assert!(entry.has_data(), "index 255 should have cosmogram data");
-    assert_eq!(entry.domain, "Temporal × Temporal");
-    assert_eq!(entry.hermetic_gate, "16.16");
-}
-
-#[test]
-fn test_cosmogram_123_entries_have_data() {
-    let count = (0u8..=255).filter(|&i| get_cosmogram(i).has_data()).count();
-    assert_eq!(
-        count, 123,
-        "expected exactly 123 entries with ese_myth data"
-    );
-}
-
-#[test]
-fn test_cosmogram_all_indices_consistent() {
+fn test_odu_ifa_agrees_with_digital_calabash_on_structure() {
     for i in 0u8..=255 {
-        let entry = get_cosmogram(i);
-        assert_eq!(
-            entry.odu_index, i,
-            "odu_index field must match array position {i}"
-        );
+        let agent = get_odu(i);
+        let human = get_odu_ifa(i);
+        assert_eq!(agent.vessel, human.vessel, "vessel mismatch at {i}");
+        assert_eq!(agent.opcode, human.opcode, "opcode mismatch at {i}");
     }
 }

@@ -17,7 +17,7 @@
 //! - `top == 0` → the **base** Digital Calabash Odù `bottom` (0–255), returned verbatim.
 //! - `top  > 0` → a **composed** Odù: the top base-Odù fixes the Action Vessel and
 //!   opcode (top drives the operation), and the bottom base-Odù refines the
-//!   prescription, taboos, and orisha (bottom modifies meaning).
+//!   prescription, taboos, and archetypes (bottom modifies meaning).
 //!
 //! Composed Odù are clearly marked `interpretation_type = "composed"` — never
 //! conflated with the base `"synthetic"` corpus or canonical ese Ifá.
@@ -45,7 +45,7 @@ pub struct ComposedOdu {
     pub description: String,
     pub taboos: Vec<String>,
     pub prescriptions: Vec<String>,
-    pub orisha: Vec<String>,
+    pub archetypes: Vec<String>,
     pub vessel: ActionVessel,
     pub opcode: OduOpCode,
     /// `"synthetic"` for the base 256, `"composed"` for derived entries.
@@ -108,7 +108,7 @@ pub fn resolve(odu_id: u16) -> ComposedOdu {
             description: b.description.to_string(),
             taboos: b.taboos.iter().map(|s| s.to_string()).collect(),
             prescriptions: b.prescriptions.iter().map(|s| s.to_string()).collect(),
-            orisha: b.orisha.iter().map(|s| s.to_string()).collect(),
+            archetypes: b.archetypes.iter().map(|s| s.to_string()).collect(),
             vessel: b.vessel,
             opcode: b.opcode,
             interpretation_type: b.interpretation_type,
@@ -121,8 +121,8 @@ pub fn resolve(odu_id: u16) -> ComposedOdu {
 
     let mut taboos: Vec<String> = t.taboos.iter().map(|s| s.to_string()).collect();
     extend_unique(&mut taboos, b.taboos);
-    let mut orisha: Vec<String> = t.orisha.iter().map(|s| s.to_string()).collect();
-    extend_unique(&mut orisha, b.orisha);
+    let mut archetypes: Vec<String> = t.archetypes.iter().map(|s| s.to_string()).collect();
+    extend_unique(&mut archetypes, b.archetypes);
     let mut prescriptions: Vec<String> = t.prescriptions.iter().map(|s| s.to_string()).collect();
     extend_unique(&mut prescriptions, b.prescriptions);
 
@@ -136,7 +136,7 @@ pub fn resolve(odu_id: u16) -> ComposedOdu {
         description: format!("{} Refined by: {}", t.description, b.description),
         taboos,
         prescriptions,
-        orisha,
+        archetypes,
         vessel: t.vessel,
         opcode: t.opcode,
         interpretation_type: "composed",

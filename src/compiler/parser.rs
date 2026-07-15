@@ -6,8 +6,8 @@ use pest_derive::Parser;
 use thiserror::Error;
 
 use crate::compiler::ast::{
-    Definition, Literal, OduDef, Param, PrescriptionStmt, PrimitiveType, RitualDef, Statement,
-    TypeExpr,
+    BinaryOp, Definition, Expression, IfStmt, LetStmt, Literal, OduDef, Param, PrescriptionStmt,
+    PrimitiveType, RitualDef, Statement, TypeExpr, WitnessDef,
 };
 
 #[derive(Parser)]
@@ -62,6 +62,7 @@ impl IfaParser {
             match pair.as_rule() {
                 Rule::odu_def => definitions.push(Definition::Odu(parse_odu_def(pair))),
                 Rule::ritual_def => definitions.push(Definition::Ritual(parse_ritual_def(pair))),
+                Rule::witness_def => definitions.push(Definition::Witness(parse_witness_def(pair))),
                 Rule::invocation => invocations.push(parse_invocation(pair)?),
                 _ => {}
             }
@@ -144,6 +145,158 @@ fn parse_type_expr(s: &str) -> TypeExpr {
     }
 }
 
+fn parse_binary_op(s: &str) -> BinaryOp {
+    match s {
+        "+" => BinaryOp::Add,
+        "-" => BinaryOp::Sub,
+        "*" => BinaryOp::Mul,
+        "/" => BinaryOp::Div,
+        "==" => BinaryOp::Eq,
+        "!=" => BinaryOp::Neq,
+        "<" => BinaryOp::Lt,
+        ">" => BinaryOp::Gt,
+        _ => BinaryOp::Add,
+    }
+}
+
+fn parse_expression(pair: pest::iterators::Pair<Rule>) -> Expression {
+    let mut terms = Vec::new();
+    let mut ops = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::expr_term => terms.push(parse_expr_term(p)),
+            Rule::binary_op => ops.push(parse_binary_op(p.as_str())),
+            _ => {}
+        }
+    }
+
+    if terms.is_empty() {
+        return Expression::Literal(Literal::Number(0.0));
+    }
+
+    let mut terms_iter = terms.into_iter();
+    let mut result = terms_iter.next().unwrap();
+    for (op, right) in ops.into_iter().zip(terms_iter) {
+        result = Expression::BinaryOp {
+            left: Box::new(result),
+            op,
+            right: Box::new(right),
+        };
+    }
+    result
+}
+
+fn parse_expr_term(pair: pest::iterators::Pair<Rule>) -> Expression {
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::literal => return Expression::Literal(parse_literal(p)),
+            Rule::ident => return Expression::Ident(p.as_str().to_string()),
+            Rule::odu_literal_expr => return parse_odu_literal(p),
+            Rule::call_expr => return parse_call_expr(p),
+            Rule::expression => return parse_expression(p),
+            _ => {}
+        }
+    }
+    Expression::Literal(Literal::Number(0.0))
+}
+
+fn parse_odu_literal(pair: pest::iterators::Pair<Rule>) -> Expression {
+    let mut name = String::new();
+    let mut param = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::odu_name => name = p.as_str().to_string(),
+            Rule::literal => param = Some(Box::new(parse_literal(p))),
+            _ => {}
+        }
+    }
+
+    Expression::OduLiteral { name, param }
+}
+
+fn parse_call_expr(pair: pest::iterators::Pair<Rule>) -> Expression {
+    let mut name = String::new();
+    let mut args = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::ident => name = p.as_str().to_string(),
+            Rule::expression => args.push(parse_expression(p)),
+            _ => {}
+        }
+    }
+
+    Expression::Call { name, args }
+}
+
+fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Statement {
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::let_stmt => return Statement::Let(parse_let_stmt(p)),
+            Rule::if_stmt => return Statement::If(parse_if_stmt(p)),
+            Rule::return_stmt => return Statement::Return(parse_return_stmt(p)),
+            Rule::prescription => return Statement::Prescription(parse_prescription(p)),
+            _ => {}
+        }
+    }
+    Statement::Prescription(PrescriptionStmt {
+        action: String::new(),
+        args: Vec::new(),
+    })
+}
+
+fn parse_let_stmt(pair: pest::iterators::Pair<Rule>) -> LetStmt {
+    let mut name = String::new();
+    let mut typ = TypeExpr::Primitive(PrimitiveType::StringT);
+    let mut value = Expression::Literal(Literal::Number(0.0));
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::ident => name = p.as_str().to_string(),
+            Rule::type_expr => typ = parse_type_expr(p.as_str()),
+            Rule::expression => value = parse_expression(p),
+            _ => {}
+        }
+    }
+
+    LetStmt { name, typ, value }
+}
+
+fn parse_if_stmt(pair: pest::iterators::Pair<Rule>) -> IfStmt {
+    let mut condition = Expression::Literal(Literal::Bool(true));
+    let mut then_block = Vec::new();
+    let else_block = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::expression => {
+                condition = parse_expression(p);
+            }
+            Rule::statement => {
+                then_block.push(parse_statement(p));
+            }
+            _ => {}
+        }
+    }
+
+    IfStmt {
+        condition,
+        then_block,
+        else_block,
+    }
+}
+
+fn parse_return_stmt(pair: pest::iterators::Pair<Rule>) -> Option<Expression> {
+    for p in pair.into_inner() {
+        if p.as_rule() == Rule::expression {
+            return Some(parse_expression(p));
+        }
+    }
+    None
+}
+
 fn parse_param_list(pair: pest::iterators::Pair<Rule>) -> Vec<Param> {
     let mut params = Vec::new();
     for p in pair.into_inner() {
@@ -172,7 +325,7 @@ fn parse_ritual_def(pair: pest::iterators::Pair<Rule>) -> RitualDef {
         match inner.as_rule() {
             Rule::ident => name = inner.as_str().to_string(),
             Rule::param_list => params = parse_param_list(inner),
-            Rule::prescription => body.push(Statement::Prescription(parse_prescription(inner))),
+            Rule::statement => body.push(parse_statement(inner)),
             _ => {}
         }
     }
@@ -181,6 +334,26 @@ fn parse_ritual_def(pair: pest::iterators::Pair<Rule>) -> RitualDef {
         params,
         attributes: Vec::new(),
         body,
+    }
+}
+
+fn parse_witness_def(pair: pest::iterators::Pair<Rule>) -> WitnessDef {
+    let mut name = String::new();
+    let mut quorum = 0u8;
+    let mut strings = Vec::new();
+    for inner in pair.into_inner() {
+        match inner.as_rule() {
+            Rule::ident => name = inner.as_str().to_string(),
+            Rule::number => quorum = inner.as_str().parse().unwrap_or(0),
+            Rule::string => strings.push(unquote(inner.as_str())),
+            _ => {}
+        }
+    }
+    WitnessDef {
+        name,
+        quorum,
+        oracle: strings.first().cloned().unwrap_or_default(),
+        anchor: strings.get(1).cloned().unwrap_or_default(),
     }
 }
 
@@ -411,5 +584,160 @@ mod tests {
         assert_eq!(invs[0].ritual_name, "dawn_rite");
         // The legacy invocation-only API still sees the invocation.
         assert_eq!(IfaParser::parse_program(src).unwrap().len(), 1);
+    }
+
+    // ── witness definitions ──────────────────────────────────────────────
+
+    #[test]
+    fn parse_witness_definition() {
+        let src = r#"witness council: 3 @"https://oracle.example/v1" @"anchor.example/net";"#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert!(invs.is_empty());
+        assert_eq!(defs.len(), 1);
+        match &defs[0] {
+            Definition::Witness(w) => {
+                assert_eq!(w.name, "council");
+                assert_eq!(w.quorum, 3);
+                assert_eq!(w.oracle, "https://oracle.example/v1");
+                assert_eq!(w.anchor, "anchor.example/net");
+            }
+            other => panic!("expected Witness def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn witness_definition_mixes_with_odu_ritual_and_invocation() {
+        let src = r#"
+            witness council: 3 @"https://oracle.example/v1" @"anchor.example/net";
+            odù Ogbe<dawn> { meditate; }
+            ritual dawn_rite() { seal; }
+            invoke dawn_rite witness 3;
+        "#;
+        let (defs, invs) = IfaParser::parse_definitions(src).unwrap();
+        assert_eq!(defs.len(), 3);
+        assert_eq!(invs.len(), 1);
+        assert!(matches!(defs[0], Definition::Witness(_)));
+        assert!(matches!(defs[1], Definition::Odu(_)));
+        assert!(matches!(defs[2], Definition::Ritual(_)));
+    }
+
+    // ── statement bodies ──────────────────────────────────────────────
+
+    #[test]
+    fn ritual_with_prescription_statements() {
+        let src = r#"
+            ritual simple_rite() {
+                offer("coconut");
+                seal;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.name, "simple_rite");
+                assert_eq!(r.body.len(), 2);
+                assert!(matches!(r.body[0], Statement::Prescription(_)));
+                assert!(matches!(r.body[1], Statement::Prescription(_)));
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn ritual_with_let_statement() {
+        let src = r#"
+            ritual with_binding() {
+                let x: u8 = 42;
+                seal;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.body.len(), 2);
+                assert!(matches!(r.body[0], Statement::Let(_)));
+                assert!(matches!(r.body[1], Statement::Prescription(_)));
+                if let Statement::Let(let_stmt) = &r.body[0] {
+                    assert_eq!(let_stmt.name, "x");
+                }
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn ritual_with_if_statement() {
+        let src = r#"
+            ritual conditional() {
+                if 1 { seal; }
+                meditate;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.body.len(), 2);
+                assert!(matches!(r.body[0], Statement::If(_)));
+                assert!(matches!(r.body[1], Statement::Prescription(_)));
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn ritual_with_return_statement() {
+        let src = r#"
+            ritual with_return() {
+                return 7;
+                seal;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.body.len(), 2);
+                assert!(matches!(r.body[0], Statement::Return(_)));
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn expression_with_binary_ops() {
+        let src = r#"
+            ritual math() {
+                let result: u8 = 3 + 4 * 2;
+                seal;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                assert_eq!(r.body.len(), 2);
+                if let Statement::Let(let_stmt) = &r.body[0] {
+                    assert!(matches!(let_stmt.value, Expression::BinaryOp { .. }));
+                }
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn if_statement_with_block() {
+        let src = r#"
+            ritual branching() {
+                if x { seal; offer("yam"); }
+                meditate;
+            }
+        "#;
+        let (defs, _) = IfaParser::parse_definitions(src).unwrap();
+        match &defs[0] {
+            Definition::Ritual(r) => {
+                if let Statement::If(if_stmt) = &r.body[0] {
+                    assert_eq!(if_stmt.then_block.len(), 2);
+                }
+            }
+            other => panic!("expected Ritual def, got {other:?}"),
+        }
     }
 }

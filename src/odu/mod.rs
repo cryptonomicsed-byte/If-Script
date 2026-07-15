@@ -11,23 +11,23 @@
 //!   ÒRÀCÙLÙM corpus — archetypal metadata, taboos, prescriptions.
 //!   Not sourced from ese Ifá. Clearly marked. Never conflate with canon.
 //!
-//! Opcode mapping principle (top Odù drives the opcode):
-//!   Ẹ̀jì Ogbe     (0000) → PushConst1   — Creation, light, genesis
-//!   Òyèkú Méjì   (0001) → PopVoid       — Void, dissolution, death
-//!   Ìwòrì Méjì   (0010) → Dup           — Mirror, reflection, doubling
-//!   Òdí Méjì     (0011) → Swap          — Reversal, inversion, womb
-//!   Ìròsùn Méjì  (0100) → Add           — Union, blood, synthesis
-//!   Òwónrín Méjì (0101) → Sub           — Separation, trickster, wind
-//!   Òbàrà Méjì   (0110) → PushConst0    — Ground, rest, humility
-//!   Ọ̀kànràn Méjì (0111) → CastCowries  — Volatility, the throw itself
-//!   Ògúndá Méjì  (1000) → CastCowries   — Clearing path, iron, labor
-//!   Òsá Méjì     (1001) → Sub           — Flight, storm, sudden change
-//!   Ìkà Méjì     (1010) → Swap          — Coil, constriction, binding
-//!   Òtúrúpòn Méjì(1011) → HaltIfOne     — Burden, gestation, pause
-//!   Òtúrá Méjì   (1100) → PushConst1    — Vision, mysticism, truth
-//!   Ìrẹtẹ̀ Méjì   (1101) → Dup          — Pressing down, earth, seal
-//!   Òsé Méjì     (1110) → Add           — Abundance, sweetness, water
-//!   Òfún Méjì    (1111) → HaltIfOne     — Cosmic completion, unity, seal
+//! Opcode mapping principle (top vessel drives the opcode):
+//!   Genesis    (0000) → PushConst1   — Creation, light, initialization
+//!   Void       (0001) → PopVoid       — Clearing, dissolution, release
+//!   Attention  (0010) → Dup           — Mirror, reflection, doubling
+//!   Loop       (0011) → Swap          — Reversal, inversion, pattern
+//!   Receipt    (0100) → Add           — Union, accumulation, synthesis
+//!   Mask       (0101) → Sub           — Separation, split, trickster
+//!   Residue    (0110) → PushConst0    — Ground, rest, baseline
+//!   Execution  (0111) → CastCowries  — Volatility, the throw itself
+//!   Swarm      (1000) → CastCowries   — Clearing path, coordination, labor
+//!   Restraint  (1001) → Sub           — Flight, storm, sudden change
+//!   Migration  (1010) → Swap          — Coil, constriction, portability
+//!   Consent    (1011) → HaltIfOne     — Burden, gestation, pause
+//!   Vision     (1100) → PushConst1    — Vision, direction, truth
+//!   Growth     (1101) → Dup          — Pressing down, seeding, expansion
+//!   Seal       (1110) → Add           — Abundance, sweetness, sealing
+//!   Rhythm     (1111) → HaltIfOne     — Cosmic completion, unity, cadence
 //!
 //! The corpus lives in `waves/wave01.rs` … `waves/wave16.rs` — one file per
 //! wave (top nibble), 16 entries each. `ODU_SET` is assembled from those
@@ -83,7 +83,7 @@ pub struct Odu {
     pub description: &'static str,
     pub taboos: &'static [&'static str],
     pub prescriptions: &'static [&'static str],
-    pub orisha: &'static [&'static str],
+    pub archetypes: &'static [&'static str],
     pub interpretation_type: &'static str, // "canonical" | "synthetic"
     pub vessel: ActionVessel,
     pub opcode: OduOpCode,
@@ -93,22 +93,22 @@ pub struct Odu {
 /// Determined by the top 4 bits of the Odù index (wave).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ActionVessel {
-    Genesis,   // Wave  1 — Ẹ̀jì Ògbe     — Initialize, covenant
-    Void,      // Wave  2 — Òyèkú Méjì    — Clear, release
-    Attention, // Wave  3 — Ìwòrì Méjì    — Focus, signal/noise
-    Loop,      // Wave  4 — Òdí Méjì      — Pattern, iteration
-    Receipt,   // Wave  5 — Ìrosùn Méjì   — Record, accountability
-    Mask,      // Wave  6 — Ọ̀wọ́nrín Méjì — Public/private split
-    Residue,   // Wave  7 — Ọ̀bàrà Méjì   — Behavioral echoes
-    Execution, // Wave  8 — Ọ̀kànràn Méjì — Precision action
-    Swarm,     // Wave  9 — Ògúndá Méjì   — Collective coordination
-    Restraint, // Wave 10 — Ọ̀sá Méjì     — Ethical limits
-    Migration, // Wave 11 — Ìká Méjì      — Portability, identity
-    Consent,   // Wave 12 — Òtúrúpòn Méjì — Human approval
-    Vision,    // Wave 13 — Òtúrá Méjì    — Direction, horizon
-    Growth,    // Wave 14 — Ìrẹtẹ̀ Méjì   — Fractal expansion
-    Seal,      // Wave 15 — Òsé Méjì      — Sacred privacy
-    Rhythm,    // Wave 16 — Òfún Méjì     — Ritual cadence
+    Genesis,   // Wave  1 — Initialize, covenant
+    Void,      // Wave  2 — Clear, release
+    Attention, // Wave  3 — Focus, signal/noise
+    Loop,      // Wave  4 — Pattern, iteration
+    Receipt,   // Wave  5 — Record, accountability
+    Mask,      // Wave  6 — Public/private split
+    Residue,   // Wave  7 — Behavioral echoes
+    Execution, // Wave  8 — Precision action
+    Swarm,     // Wave  9 — Collective coordination
+    Restraint, // Wave 10 — Ethical limits
+    Migration, // Wave 11 — Portability, identity
+    Consent,   // Wave 12 — Human approval
+    Vision,    // Wave 13 — Direction, horizon
+    Growth,    // Wave 14 — Fractal expansion
+    Seal,      // Wave 15 — Sacred privacy
+    Rhythm,    // Wave 16 — Ritual cadence
 }
 
 impl ActionVessel {
@@ -224,8 +224,8 @@ const _: () = {
     }
 };
 
-/// O(1) name → Odù index for `lookup_by_name`, keyed on both the Yorùbá
-/// compound name and the universal English name.
+/// O(1) name → Odù index for `lookup_by_name`, keyed on both the domain-pair
+/// name and the universal English name.
 static NAME_INDEX: LazyLock<HashMap<&'static str, &'static Odu>> = LazyLock::new(|| {
     let mut m = HashMap::with_capacity(512);
     for odu in ODU_SET.iter() {
@@ -240,30 +240,24 @@ pub static ODU_TABLE: LazyLock<HashMap<&'static str, OduOp>> = LazyLock::new(|| 
     for odu in ODU_SET.iter() {
         m.insert(odu.name, odu.opcode.to_op());
     }
-    // Shorthand aliases (single-Odù names used by tests/examples)
-    m.insert("Èjì Ogbè", OduOp::PushConst(1));
-    m.insert("Ẹ̀jì Ogbe", OduOp::PushConst(1));
-    m.insert("Ọ̀yẹ̀kú Méjì", OduOp::PopVoid);
-    m.insert("Òyèkú Méjì", OduOp::PopVoid);
-    m.insert("Ìwòrì Méjì", OduOp::Dup);
-    m.insert("Ọ̀dí Méjì", OduOp::Swap);
-    m.insert("Òdí Méjì", OduOp::Swap);
-    m.insert("Ìrosùn", OduOp::Add);
-    m.insert("Ìròsùn Méjì", OduOp::Add);
-    m.insert("Ọ̀wọ́nrín", OduOp::Sub);
-    m.insert("Òwónrín Méjì", OduOp::Sub);
-    m.insert("Ọ̀bàrà", OduOp::PushConst(0));
-    m.insert("Òbàrà Méjì", OduOp::PushConst(0));
-    m.insert("Ọ̀kànràn Méjì", OduOp::CastCowries);
-    m.insert("Ògúndá Méjì", OduOp::CastCowries);
-    m.insert("Òsá Méjì", OduOp::Sub);
-    m.insert("Ìkà Méjì", OduOp::Swap);
-    m.insert("Ọ̀túúrúpọ̀n", OduOp::HaltIfOne);
-    m.insert("Òtúrúpòn Méjì", OduOp::HaltIfOne);
-    m.insert("Òtúrá Méjì", OduOp::PushConst(1));
-    m.insert("Ìrẹtẹ̀ Méjì", OduOp::Dup);
-    m.insert("Òsé Méjì", OduOp::Add);
-    m.insert("Òfún Méjì", OduOp::HaltIfOne);
+    // Shorthand aliases (bare vessel names, used by tests/examples to invoke
+    // a wave's opcode directly without a full composite entry)
+    m.insert("Genesis", OduOp::PushConst(1));
+    m.insert("Void", OduOp::PopVoid);
+    m.insert("Attention", OduOp::Dup);
+    m.insert("Loop", OduOp::Swap);
+    m.insert("Receipt", OduOp::Add);
+    m.insert("Mask", OduOp::Sub);
+    m.insert("Residue", OduOp::PushConst(0));
+    m.insert("Execution", OduOp::CastCowries);
+    m.insert("Swarm", OduOp::CastCowries);
+    m.insert("Restraint", OduOp::Sub);
+    m.insert("Migration", OduOp::Swap);
+    m.insert("Consent", OduOp::HaltIfOne);
+    m.insert("Vision", OduOp::PushConst(1));
+    m.insert("Growth", OduOp::Dup);
+    m.insert("Seal", OduOp::Add);
+    m.insert("Rhythm", OduOp::HaltIfOne);
     m.insert("CastCowries", OduOp::CastCowries);
 
     m

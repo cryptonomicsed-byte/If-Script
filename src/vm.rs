@@ -14,8 +14,8 @@ pub const MAX_STACK_DEPTH: usize = 1024;
 /// Output of a cowrie cast for low-tier agents.
 ///
 /// Low-tier agents receive only this struct — the vessel, the universal name,
-/// and the prescription steps.  Full Odù metadata (archetype, orisha, taboos)
-/// is reserved for Èṣù/Hive-tier LARQL synthesis via `cast_odu_full()`.
+/// and the prescription steps.  Full Odù metadata (archetype, archetypes, taboos)
+/// is reserved for Steward/Hive-tier LARQL synthesis via `cast_odu_full()`.
 #[derive(Debug)]
 pub struct CastResult {
     /// Raw Odù index (0–255). Top nibble = wave/vessel, bottom nibble = modifier.
@@ -192,17 +192,10 @@ impl IfaVM {
     /// act on the cast: which file domain to write, which steps to follow.
     pub fn cast_odu(&mut self) -> CastResult {
         let index = (self.oracle.cast_cowries() % 256) as u8;
-        let odu = get_odu(index);
-        CastResult {
-            index,
-            vessel: odu.vessel,
-            file_domain: odu.vessel.file_domain(),
-            universal_name: odu.universal_name,
-            prescriptions: odu.prescriptions,
-        }
+        Self::result_for(get_odu(index))
     }
 
-    /// **Hive/Èṣù-tier cast** — returns the full static Odù record.
+    /// **Hive/Steward-tier cast** — returns the full static Odù record.
     ///
     /// Only call from the LARQL synthesis layer. Low-tier agents should use
     /// `cast_odu()` instead.
@@ -211,12 +204,49 @@ impl IfaVM {
         get_odu(index)
     }
 
-    /// Look up any Odù by Yorùbá compound name or universal English name.
+    /// **Dual cast, low-tier** — one cowrie throw, resolved through *both*
+    /// corpora at the same index: the agent-native Digital Calabash and the
+    /// traditional Òdù Ifá. Use this when an agent needs its own internal
+    /// reading and a human-facing translation of that *same* event — not two
+    /// unrelated casts. Returns `(agent_reading, human_reading)`.
+    pub fn cast_dual(&mut self) -> (CastResult, CastResult) {
+        let index = (self.oracle.cast_cowries() % 256) as u8;
+        (
+            Self::result_for(get_odu(index)),
+            Self::result_for(crate::odu_ifa::get_odu_ifa(index)),
+        )
+    }
+
+    /// **Dual cast, full record** — the Hive/Steward-tier counterpart to
+    /// `cast_dual()`. One cowrie throw, returns the full static Odù record
+    /// from both corpora at the same index: `(agent_odu, human_odu)`.
+    pub fn cast_dual_full(&mut self) -> (&'static Odu, &'static Odu) {
+        let index = (self.oracle.cast_cowries() % 256) as u8;
+        (get_odu(index), crate::odu_ifa::get_odu_ifa(index))
+    }
+
+    fn result_for(odu: &'static Odu) -> CastResult {
+        CastResult {
+            index: odu.index,
+            vessel: odu.vessel,
+            file_domain: odu.vessel.file_domain(),
+            universal_name: odu.universal_name,
+            prescriptions: odu.prescriptions,
+        }
+    }
+
+    /// Look up any Odù by its domain-pair name or universal English name.
     ///
     /// Returns `None` for unrecognised names. Suitable for LARQL `DESCRIBE`
     /// queries and named-cast operations.
     pub fn lookup_odu(name: &str) -> Option<&'static Odu> {
         crate::odu::lookup_by_name(name)
+    }
+
+    /// Look up any Odù by its traditional Yorùbá compound name or universal
+    /// English name, in the `crate::odu_ifa` corpus.
+    pub fn lookup_odu_ifa(name: &str) -> Option<&'static Odu> {
+        crate::odu_ifa::lookup_by_name_ifa(name)
     }
 
     // ── Legacy program execution (backward-compatible) ────────────────────

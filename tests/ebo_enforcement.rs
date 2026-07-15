@@ -3,7 +3,7 @@ use ifascript::{ebo::EboTrigger, IfaVM};
 #[test]
 fn test_stack_underflow_triggers_ebo() {
     let mut vm = IfaVM::new();
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]); // POP on empty stack
+    let _ = vm.execute(vec!["Void"]); // POP on empty stack
 
     assert!(vm.ebo_history.has_trigger(&EboTrigger::StackUnderflow));
 }
@@ -13,12 +13,12 @@ fn test_ebo_escalation() {
     let mut vm = IfaVM::new();
 
     // First 3 underflows trigger TimeDelay(1s)
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]);
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]);
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]);
+    let _ = vm.execute(vec!["Void"]);
+    let _ = vm.execute(vec!["Void"]);
+    let _ = vm.execute(vec!["Void"]);
 
     // Fourth underflow escalates to PoW(20)
-    let _ = vm.execute(vec!["Ọ̀yẹ̀kú Méjì"]);
+    let _ = vm.execute(vec!["Void"]);
 
     assert!(vm.ebo_history.has_trigger(&EboTrigger::StackUnderflow));
 }
