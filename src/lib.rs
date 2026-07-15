@@ -10,6 +10,7 @@ pub mod field;
 // native targets only, same gate as the NIST beacon fetch.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod field_divination;
+pub mod glyph;
 pub mod hermetic;
 pub mod manifesto;
 pub mod odu;
@@ -22,6 +23,9 @@ pub mod zangbeto;
 
 // Error type
 pub use error::IfaError;
+
+// GlyphIndex memory residues — memory-augmented divination
+pub use glyph::{cast_with_memory, GlyphResidue, MemoryCast};
 
 // Core VM
 pub use vm::{CastResult, IfaVM};
