@@ -123,12 +123,15 @@ pub fn cast_engram(
     let content =
         serde_json::to_string(receipt).map_err(|e| EventError::Serialisation(e.to_string()))?;
 
-    let slug = kinds::slug_cast(
-        receipt
-            .receipt_hash
-            .as_deref()
-            .unwrap_or(&receipt.odu_index.to_string()),
-    );
+    let key_part = receipt
+        .receipt_hash
+        .clone()
+        .unwrap_or_else(|| receipt.odu_index.to_string());
+    let slug = kinds::slug_cast(&key_part).ok_or_else(|| {
+        EventError::Serialisation(format!(
+            "{key_part:?} cannot form a valid engram slug"
+        ))
+    })?;
     let key = identity
         .secret_bytes()
         .map_err(EventError::Signing)?;

@@ -110,14 +110,125 @@ pub fn relay_rejects(kind: u64) -> bool {
 /// Slug prefix for every engram IfáScript writes.
 pub const SLUG_PREFIX: &str = "mem/ifa";
 
+/// minipae's slug grammar, which every engram address must satisfy.
+///
+/// Verified against `minipae.py::validate_slug`: each `/`-separated segment
+/// after `mem/` must be non-empty, at most 64 bytes, start with a lowercase
+/// letter, digit or `_`, and contain only lowercase letters, digits, `_` and
+/// `-`. The whole slug must be at most 255 bytes.
+pub fn validate_slug(slug: &str) -> bool {
+    if slug.len() > 255 || !slug.starts_with("mem/") {
+        return false;
+    }
+    let rest = &slug[4..];
+    if rest.is_empty() {
+        return false;
+    }
+    rest.split('/').all(|part| {
+        !part.is_empty()
+            && part.len() <= 64
+            && part
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
+            && part
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' || c == '-')
+    })
+}
+
+/// Fold one path segment into minipae's grammar.
+///
+/// IfáScript's ritual names are Yorùbá, and that vocabulary does not satisfy
+/// the grammar above — capitals and diacritics are both rejected, so an
+/// unnormalised name produces a slug `minipae.py::validate_slug` refuses, and
+/// an engram no minipae client can address.
+///
+/// Normalising costs nothing that matters: the slug is HMAC'd into the `d` tag
+/// before it reaches the wire, so it is an addressing key and never display
+/// text. The Yorùbá name travels intact in the event content.
+///
+/// Returns `None` when nothing survives normalisation, so a caller fails here
+/// rather than building an address that only breaks later.
+pub fn normalize_slug_segment(segment: &str) -> Option<String> {
+    let mut out = String::with_capacity(segment.len());
+    let mut last_dash = false;
+
+    for c in segment.chars() {
+        // Combining marks are dropped rather than mapped, so `ọ́` folds toward
+        // `o` instead of becoming a separator.
+        if is_combining_mark(c) {
+            continue;
+        }
+        let folded = fold_char(c);
+        match folded {
+            Some(f) => {
+                out.push(f);
+                last_dash = false;
+            }
+            None => {
+                if !last_dash && !out.is_empty() {
+                    out.push('-');
+                    last_dash = true;
+                }
+            }
+        }
+    }
+
+    let trimmed = out.trim_matches('-');
+    let capped: String = trimmed.chars().take(64).collect();
+    let capped = capped.trim_matches('-').to_string();
+    if capped.is_empty() {
+        None
+    } else {
+        Some(capped)
+    }
+}
+
+fn is_combining_mark(c: char) -> bool {
+    matches!(c as u32, 0x0300..=0x036F | 0x1AB0..=0x1AFF | 0x20D0..=0x20FF)
+}
+
+/// Map one character into the slug alphabet, or `None` if it is a separator.
+///
+/// Handles the Latin-1/Latin-Extended letters Yorùbá orthography uses in
+/// precomposed form (`ọ` U+1ECD, `ẹ` U+1EB9, `ṣ` U+1E63, plus the accented
+/// vowels), so `Ọ̀rúnmìlà` folds to `orunmila` rather than to dashes.
+fn fold_char(c: char) -> Option<char> {
+    if c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_' || c == '-' {
+        return Some(c);
+    }
+    if c.is_ascii_uppercase() {
+        return Some(c.to_ascii_lowercase());
+    }
+    let base = match c {
+        'à'..='å' | 'À'..='Å' | 'ā' | 'Ā' => 'a',
+        'è'..='ë' | 'È'..='Ë' | 'ē' | 'Ē' | 'ẹ' | 'Ẹ' => 'e',
+        'ì'..='ï' | 'Ì'..='Ï' | 'ī' | 'Ī' => 'i',
+        'ò'..='ö' | 'Ò'..='Ö' | 'ō' | 'Ō' | 'ọ' | 'Ọ' => 'o',
+        'ù'..='ü' | 'Ù'..='Ü' | 'ū' | 'Ū' => 'u',
+        'ṣ' | 'Ṣ' => 's',
+        'ń' | 'Ń' => 'n',
+        'ý' | 'ÿ' | 'Ý' => 'y',
+        _ => return None,
+    };
+    Some(base)
+}
+
 /// Slug for a single ritual cast receipt, keyed by receipt hash.
-pub fn slug_cast(receipt_hash: &str) -> String {
-    format!("{SLUG_PREFIX}/cast/{receipt_hash}")
+///
+/// Returns `None` if the hash cannot form a valid address.
+pub fn slug_cast(receipt_hash: &str) -> Option<String> {
+    let slug = format!("{SLUG_PREFIX}/cast/{}", normalize_slug_segment(receipt_hash)?);
+    validate_slug(&slug).then_some(slug)
 }
 
 /// Slug for a ritual invocation record, keyed by ritual name.
-pub fn slug_ritual(ritual_name: &str) -> String {
-    format!("{SLUG_PREFIX}/ritual/{ritual_name}")
+///
+/// Returns `None` if the name cannot form a valid address.
+pub fn slug_ritual(ritual_name: &str) -> Option<String> {
+    let slug = format!("{SLUG_PREFIX}/ritual/{}", normalize_slug_segment(ritual_name)?);
+    validate_slug(&slug).then_some(slug)
 }
 
 /// Slug for an agent's current governance state (tier, vessel standing).
@@ -183,8 +294,48 @@ mod tests {
 
     #[test]
     fn slugs_are_namespaced_to_ifa() {
-        assert!(slug_cast("abc").starts_with("mem/ifa/"));
-        assert!(slug_ritual("dawn").starts_with("mem/ifa/"));
+        assert!(slug_cast("abc").unwrap().starts_with("mem/ifa/"));
+        assert!(slug_ritual("dawn").unwrap().starts_with("mem/ifa/"));
         assert!(slug_state().starts_with("mem/ifa/"));
+    }
+
+    #[test]
+    fn a_yoruba_ritual_name_still_produces_a_slug_minipae_accepts() {
+        // minipae.py::validate_slug allows only [a-z0-9_-] per segment, so an
+        // unnormalised Yorùbá name yields an engram no minipae client can
+        // address. Normalising is free: the slug is HMAC'd before the wire and
+        // the real name travels in the content.
+        assert_eq!(
+            slug_ritual("Ọ̀rúnmìlà-Ìwúre").unwrap(),
+            "mem/ifa/ritual/orunmila-iwure"
+        );
+        assert!(validate_slug(&slug_ritual("Ọ̀rúnmìlà-Ìwúre").unwrap()));
+    }
+
+    #[test]
+    fn slug_validation_matches_minipae_grammar() {
+        assert!(validate_slug("mem/ifa/ritual/dawn"));
+        assert!(!validate_slug("mem/ifa/ritual/Dawn"), "capitals rejected");
+        assert!(!validate_slug("mem/ifa/ritual/ọjọ"), "diacritics rejected");
+        assert!(!validate_slug("mem/ifa//dawn"), "empty segments rejected");
+        assert!(!validate_slug("ifa/ritual"), "must start with mem/");
+        assert!(!validate_slug(&format!("mem/ifa/{}", "x".repeat(65))));
+    }
+
+    #[test]
+    fn normalisation_folds_diacritics_and_case() {
+        assert_eq!(normalize_slug_segment("Ọ̀rúnmìlà").unwrap(), "orunmila");
+        assert_eq!(normalize_slug_segment("Ògún").unwrap(), "ogun");
+        assert_eq!(normalize_slug_segment("Ẹ̀ṣù").unwrap(), "esu");
+        assert_eq!(normalize_slug_segment("Earth + Metal").unwrap(), "earth-metal");
+    }
+
+    #[test]
+    fn a_segment_that_normalises_to_nothing_is_refused() {
+        // Silently emitting an empty segment builds an invalid slug that only
+        // fails later, in another client or at the relay.
+        assert!(normalize_slug_segment("!!!").is_none());
+        assert!(normalize_slug_segment("").is_none());
+        assert!(slug_ritual("!!!").is_none());
     }
 }
