@@ -161,21 +161,32 @@ Shared across components so a reader can filter without parsing content:
 
 | Repo | Nostr today | Gap |
 |---|---|---|
-| Vantage | extensive | conform to this doc |
-| Buzz / Crucible | full NIP-01 + BIP-340 | authority for `47xxx` |
-| ỌMỌ KỌ́DÀ | NIP-06 identity | authority for identity |
-| minipae | NIP-01/06/42/44/65 | authority for `30174` |
-| BIPON39 | NIP-06 path | authority for derivation |
-| **IfáScript** | **implemented** | relay transport |
-| Ọ̀ṢỌ́VM | comments only | **no implementation** |
-| **Kóòdù** | **implemented** (unsigned events) | signer wiring |
-| **Zàngbétò** | **implemented** | relay transport |
-| Loom, Mycelium, Waggle, organism-core, Triune-Memory | none | extensions |
+| Repo | Signs? | Status | Remaining |
+|---|---|---|---|
+| Buzz / Crucible | yes | authority for `47xxx` + relay allowlist | — |
+| minipae | yes | authority for `30174`; **id serialization fixed** | — |
+| BIPON39 | n/a | authority for NIP-06 derivation | — |
+| ỌMỌ KỌ́DÀ | yes | authority for agent identity | conform to §7 |
+| Vantage | yes | extensive; `_event_id` already §7-correct | conform to §2 |
+| **IfáScript** | yes | **implemented**, 101 tests | relay transport |
+| **Zàngbétò** | yes | **implemented**, 38 tests | relay transport |
+| **Kóòdù** | no, by design | **implemented**, 14 tests | signer wiring |
+| **Ọ̀ṢỌ́VM** | no, by design | **implemented**, tests unrun (no Julia) | run tests; signer wiring |
+| Loom, Mycelium, Waggle, organism-core, Triune-Memory | — | none | extensions |
 
-Both governance layers now emit. Kóòdù publishes gate decisions as unsigned
-canonical events (it holds no keys by design); Zàngbétò publishes enforcement
-receipts signed by a guardian identity derived from its own seed. The remaining
-gap is Ọ̀ṢỌ́VM, and relay transport everywhere — no component yet opens a socket.
+Both governance layers now emit, and so does the VM. Kóòdù and Ọ̀ṢỌ́VM build
+unsigned canonical events — neither holds agent keys, and neither should;
+IfáScript and Zàngbétò sign with identities derived from seeds they own.
+
+Two gaps remain, and both are real:
+
+1. **No component opens a socket.** Every implementation prepares and signs;
+   none publishes. That is deliberate — nothing no-ops while pretending to have
+   sent — but it means nothing has been verified against a live relay.
+2. **Ọ̀ṢỌ́VM's tests have never run.** Julia is not installed in the environment
+   they were written in and the toolchain host is proxy-blocked. The
+   serialization algorithm was verified by porting its rules to Python and
+   reproducing the pinned vector; Julia syntax and semantics were not.
 
 ---
 
