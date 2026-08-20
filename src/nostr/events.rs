@@ -107,7 +107,7 @@ pub enum EventError {
     Serialisation(String),
     #[error("invalid relay url: {0}")]
     RelayUrl(String),
-    #[error("kind {0} is not admitted by the Buzz relay allowlist")]
+    #[error("kind {0} is not one IfáScript publishes under")]
     KindNotAdmitted(u64),
 }
 
@@ -210,7 +210,7 @@ fn build(
 ) -> Result<Event, EventError> {
     // Fail here rather than at relay ingest. The relay rejects unknown kinds
     // *after* a successful auth, which reads as a confusing auth problem.
-    if !kinds::buzz_relay_admits(kind) {
+    if !kinds::is_publishable(kind) {
         return Err(EventError::KindNotAdmitted(kind));
     }
     EventBuilder::new(Kind::Custom(kind), content, tags)

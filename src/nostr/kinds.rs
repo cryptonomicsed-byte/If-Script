@@ -17,17 +17,23 @@
 //!
 //! # Why IfáScript defines no kinds of its own
 //!
-//! The production Buzz relay enforces a **strict kind allowlist** in
-//! `required_scope_for_kind()` — unknown kinds are rejected at ingest, after
-//! authentication, with `restricted: unknown event kind`. Only `30174` and the
-//! `47000..48000` block are admitted (the latter added by an operational patch
-//! recorded in minipae's `docs/D_2_2_RELAY_KIND_COMPATIBILITY.md`).
+//! The production Buzz relay enforces a kind allowlist in
+//! `required_scope_for_kind()` (`buzz-relay/src/handlers/ingest.rs`) — a kind
+//! with no match arm is rejected at ingest, **after** authentication, with
+//! `restricted: unknown event kind`, which reads like an auth failure and is
+//! not one.
 //!
-//! A fresh `kind:31xxx` for "ritual cast" would therefore be silently
-//! unpublishable on the one relay the ecosystem actually runs. So a ritual cast
-//! travels as a **minipae engram** (`30174`), and a ritual assertion that wants
-//! witness consensus travels as a **Crucible claim** (`47001`). IfáScript
-//! borrows both vocabularies rather than minting a third.
+//! That allowlist is broad: it covers Buzz's own vocabulary (profiles, text
+//! notes, reactions, deletions, gift wraps, stream messages, NIP-51 lists,
+//! NIP-65 relay lists…), `30174`, and — added by the operational patch
+//! recorded in minipae's `docs/D_2_2_RELAY_KIND_COMPATIBILITY.md` — the
+//! `47000..48000` block. It does **not** cover an arbitrary new kind.
+//!
+//! So a fresh `kind:31xxx` for "ritual cast" would be silently unpublishable
+//! on the one relay the ecosystem actually runs. A ritual cast travels as a
+//! **minipae engram** (`30174`), and a ritual assertion that wants witness
+//! consensus travels as a **Crucible claim** (`47001`). IfáScript borrows both
+//! vocabularies rather than minting a third.
 //!
 //! `47000..48000` belongs to Crucible; IfáScript must never squat inside it.
 
@@ -61,12 +67,38 @@ pub fn is_crucible(kind: u64) -> bool {
     CRUCIBLE_RESERVED.contains(&kind)
 }
 
-/// True when the production Buzz relay's allowlist admits `kind`.
+/// True when `kind` is one IfáScript is allowed to publish under.
 ///
-/// Mirrors the verified relay behaviour rather than assuming, so a caller can
-/// fail fast locally instead of discovering rejection at ingest.
-pub fn buzz_relay_admits(kind: u64) -> bool {
-    kind == KIND_AGENT_ENGRAM || is_crucible(kind)
+/// This is deliberately **not** a mirror of the relay's allowlist. That
+/// allowlist is a large match arm covering most of Buzz's own vocabulary, and
+/// a copy of it here would drift out of sync silently — asserting a
+/// permissiveness this crate cannot actually verify. What this function states
+/// is narrower and checkable: the four kinds IfáScript itself emits.
+///
+/// Anything outside this set is a bug in the caller, not a question about the
+/// relay. A caller that needs a kind the relay accepts but IfáScript does not
+/// emit (a text note, a long-form post) should use a client for that
+/// vocabulary rather than widening this.
+pub fn is_publishable(kind: u64) -> bool {
+    matches!(
+        kind,
+        KIND_AGENT_ENGRAM | KIND_CLAIM | KIND_REACTION | KIND_AUTH
+    )
+}
+
+/// Kinds the relay is known to reject outright — anything with no match arm in
+/// `required_scope_for_kind`. Used to distinguish "IfáScript does not emit
+/// this" from "the relay would refuse this from anyone".
+pub fn relay_rejects(kind: u64) -> bool {
+    // Conservative: only claims rejection for kinds outside every documented
+    // Buzz range. Silence here means "unknown", never "accepted".
+    !(kind <= 41
+        || (1059..=1063).contains(&kind)
+        || (10000..=10999).contains(&kind)
+        || (20000..=29999).contains(&kind)
+        || (30000..=39999).contains(&kind)
+        || (40000..=46999).contains(&kind)
+        || is_crucible(kind))
 }
 
 // === Engram slug namespace ===
@@ -122,20 +154,31 @@ mod tests {
     }
 
     #[test]
-    fn ifascript_mints_no_kind_inside_crucibles_block() {
-        // Every kind this module publishes under must be either the engram
-        // kind or a Crucible kind Crucible itself defined.
-        for k in [KIND_AGENT_ENGRAM, KIND_CLAIM, KIND_ATTESTATION, KIND_VERDICT] {
-            assert!(buzz_relay_admits(k), "kind {k} would be rejected at ingest");
+    fn every_kind_ifascript_emits_is_publishable() {
+        for k in [KIND_AGENT_ENGRAM, KIND_CLAIM, KIND_REACTION, KIND_AUTH] {
+            assert!(is_publishable(k), "kind {k} is emitted but not publishable");
         }
     }
 
     #[test]
-    fn relay_allowlist_rejects_invented_kinds() {
-        // The failure mode this constant exists to prevent: a plausible-looking
-        // custom kind that the relay drops after auth succeeds.
-        assert!(!buzz_relay_admits(31337));
-        assert!(!buzz_relay_admits(30166));
+    fn a_kind_ifascript_does_not_emit_is_not_publishable() {
+        // The guard exists so an invented kind fails at the call site rather
+        // than at ingest, where the relay reports it as a post-auth rejection
+        // that reads like an auth problem.
+        assert!(!is_publishable(31337));
+        assert!(!is_publishable(1), "text notes are the message layer's job");
+    }
+
+    #[test]
+    fn publishable_does_not_claim_to_mirror_the_relay() {
+        // The relay accepts far more than IfáScript emits -- kind 1, 30023,
+        // 30315 and much of Buzz's vocabulary. is_publishable says nothing
+        // about those; relay_rejects is the function that speaks to the relay,
+        // and it must not call them rejected.
+        for k in [1u64, 7, 30023, 30315, 30174] {
+            assert!(!relay_rejects(k), "kind {k} is accepted by the relay");
+        }
+        assert!(relay_rejects(99999));
     }
 
     #[test]
