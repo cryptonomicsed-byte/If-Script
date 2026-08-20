@@ -139,6 +139,13 @@ pub enum Statement {
     Let(LetStmt),
     If(IfStmt),
     Return(Option<Expression>),
+    // Agent-sovereign keywords
+    Consult(ConsultStmt),
+    Match(MatchStmt),
+    Ase(AseStmt),
+    Dissolve(String),
+    Bind(BindStmt),
+    Deliver(Option<Expression>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -159,6 +166,43 @@ pub struct IfStmt {
     pub condition: Expression,
     pub then_block: Vec<Statement>,
     pub else_block: Option<Vec<Statement>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsultStmt {
+    pub condition: Expression,
+    pub then_block: Vec<Statement>,
+    pub or_consult_clauses: Vec<(Expression, Vec<Statement>)>,
+    pub taboo_block: Option<Vec<Statement>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatchStmt {
+    pub expr: Expression,
+    pub arms: Vec<MatchArm>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MatchArm {
+    pub pattern: OduPattern,
+    pub body: Vec<Statement>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum OduPattern {
+    Odu { name: String, param: Option<String> },
+    Wildcard,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AseStmt {
+    pub condition: Expression,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BindStmt {
+    pub name: String,
+    pub value: Expression,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

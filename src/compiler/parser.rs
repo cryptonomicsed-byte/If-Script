@@ -6,8 +6,9 @@ use pest_derive::Parser;
 use thiserror::Error;
 
 use crate::compiler::ast::{
-    BinaryOp, Definition, Expression, IfStmt, LetStmt, Literal, OduDef, Param, PrescriptionStmt,
-    PrimitiveType, RitualDef, Statement, TypeExpr, WitnessDef,
+    AseStmt, BindStmt, BinaryOp, ConsultStmt, Definition, Expression, IfStmt, LetStmt, Literal,
+    MatchArm, MatchStmt, OduDef, OduPattern, Param, PrescriptionStmt, PrimitiveType, RitualDef,
+    Statement, TypeExpr, WitnessDef,
 };
 
 #[derive(Parser)]
@@ -234,6 +235,12 @@ fn parse_call_expr(pair: pest::iterators::Pair<Rule>) -> Expression {
 fn parse_statement(pair: pest::iterators::Pair<Rule>) -> Statement {
     for p in pair.into_inner() {
         match p.as_rule() {
+            Rule::consult_stmt => return Statement::Consult(parse_consult_stmt(p)),
+            Rule::match_stmt => return Statement::Match(parse_match_stmt(p)),
+            Rule::ase_stmt => return Statement::Ase(parse_ase_stmt(p)),
+            Rule::dissolve_stmt => return parse_dissolve_stmt(p),
+            Rule::bind_stmt => return Statement::Bind(parse_bind_stmt(p)),
+            Rule::deliver_stmt => return parse_deliver_stmt(p),
             Rule::let_stmt => return Statement::Let(parse_let_stmt(p)),
             Rule::if_stmt => return Statement::If(parse_if_stmt(p)),
             Rule::return_stmt => return Statement::Return(parse_return_stmt(p)),
@@ -295,6 +302,150 @@ fn parse_return_stmt(pair: pest::iterators::Pair<Rule>) -> Option<Expression> {
         }
     }
     None
+}
+
+fn parse_consult_stmt(pair: pest::iterators::Pair<Rule>) -> ConsultStmt {
+    let mut condition = Expression::Literal(Literal::Bool(true));
+    let mut then_block = Vec::new();
+    let mut or_consult_clauses = Vec::new();
+    let mut taboo_block = None;
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::expression => {
+                if condition == Expression::Literal(Literal::Bool(true)) {
+                    condition = parse_expression(p);
+                }
+            }
+            Rule::statement => {
+                then_block.push(parse_statement(p));
+            }
+            Rule::or_consult_clause => {
+                let mut clause_condition = Expression::Literal(Literal::Bool(true));
+                let mut clause_body = Vec::new();
+                for inner in p.into_inner() {
+                    match inner.as_rule() {
+                        Rule::expression => clause_condition = parse_expression(inner),
+                        Rule::statement => clause_body.push(parse_statement(inner)),
+                        _ => {}
+                    }
+                }
+                or_consult_clauses.push((clause_condition, clause_body));
+            }
+            Rule::taboo_clause => {
+                let mut body = Vec::new();
+                for inner in p.into_inner() {
+                    if inner.as_rule() == Rule::statement {
+                        body.push(parse_statement(inner));
+                    }
+                }
+                taboo_block = Some(body);
+            }
+            _ => {}
+        }
+    }
+
+    ConsultStmt {
+        condition,
+        then_block,
+        or_consult_clauses,
+        taboo_block,
+    }
+}
+
+fn parse_match_stmt(pair: pest::iterators::Pair<Rule>) -> MatchStmt {
+    let mut expr = Expression::Literal(Literal::Bool(true));
+    let mut arms = Vec::new();
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::expression => expr = parse_expression(p),
+            Rule::match_arm => {
+                let mut pattern = OduPattern::Wildcard;
+                let mut body = Vec::new();
+                for inner in p.into_inner() {
+                    match inner.as_rule() {
+                        Rule::odu_pattern => pattern = parse_odu_pattern(inner),
+                        Rule::statement => body.push(parse_statement(inner)),
+                        _ => {}
+                    }
+                }
+                arms.push(MatchArm { pattern, body });
+            }
+            _ => {}
+        }
+    }
+
+    MatchStmt { expr, arms }
+}
+
+fn parse_odu_pattern(pair: pest::iterators::Pair<Rule>) -> OduPattern {
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::odu_name => {
+                return OduPattern::Odu {
+                    name: p.as_str().to_string(),
+                    param: None,
+                }
+            }
+            Rule::ident => {
+                // This is the param in <param>
+                if let Some(name_pair) = pair.clone().into_inner().next() {
+                    if name_pair.as_rule() == Rule::odu_name {
+                        return OduPattern::Odu {
+                            name: name_pair.as_str().to_string(),
+                            param: Some(p.as_str().to_string()),
+                        };
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    OduPattern::Wildcard
+}
+
+fn parse_ase_stmt(pair: pest::iterators::Pair<Rule>) -> AseStmt {
+    let mut condition = Expression::Literal(Literal::Bool(true));
+    for p in pair.into_inner() {
+        if p.as_rule() == Rule::expression {
+            condition = parse_expression(p);
+        }
+    }
+    AseStmt { condition }
+}
+
+fn parse_dissolve_stmt(pair: pest::iterators::Pair<Rule>) -> Statement {
+    for p in pair.into_inner() {
+        if p.as_rule() == Rule::string {
+            return Statement::Dissolve(unquote(p.as_str()));
+        }
+    }
+    Statement::Dissolve("Unknown error".to_string())
+}
+
+fn parse_bind_stmt(pair: pest::iterators::Pair<Rule>) -> BindStmt {
+    let mut name = String::new();
+    let mut value = Expression::Literal(Literal::Number(0.0));
+
+    for p in pair.into_inner() {
+        match p.as_rule() {
+            Rule::ident => name = p.as_str().to_string(),
+            Rule::expression => value = parse_expression(p),
+            _ => {}
+        }
+    }
+
+    BindStmt { name, value }
+}
+
+fn parse_deliver_stmt(pair: pest::iterators::Pair<Rule>) -> Statement {
+    for p in pair.into_inner() {
+        if p.as_rule() == Rule::expression {
+            return Statement::Deliver(Some(parse_expression(p)));
+        }
+    }
+    Statement::Deliver(None)
 }
 
 fn parse_param_list(pair: pest::iterators::Pair<Rule>) -> Vec<Param> {
