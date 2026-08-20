@@ -171,7 +171,10 @@ Shared across components so a reader can filter without parsing content:
 | **Kóòdù** | no, by design | **implemented**, 18 tests | signer wiring |
 | **Ọ̀ṢỌ́VM** | no, by design | **implemented**, tests unrun (no Julia) | run tests; signer wiring |
 | **organism-core** | no, by design | **implemented**, 19 tests — shared TS module | signer wiring |
-| Mycelium, Waggle, Loom, Triune-Memory | — | namespaces reserved | adopt a module below |
+| **Mycelium** | via minipae | **implemented**, 17 tests | falsifier modules |
+| **Loom** | via minipae | **implemented**, 15 tests | falsifier modules |
+| **Waggle** (Agentic) | via minipae | **implemented**, 17 tests | falsifier modules |
+| **Triune-Memory** | no, by design | **implemented**, 8 tests | signer wiring |
 
 ### One implementation per language
 
@@ -196,19 +199,44 @@ unsigned canonical events — neither holds agent keys, and neither should;
 IfáScript and Zàngbétò sign with identities derived from seeds they own.
 
 **Transport** is implemented in both signing components — NIP-42 auth, publish,
-and read-back verification — and exercised against a loopback mock relay. It has
-still never run against the *real* Buzz relay, so relay-specific behaviour
-(its actual challenge format, its rejection strings) remains unverified.
+and read-back verification — and exercised against a loopback mock relay.
 
-Two gaps remain:
+### The d-tag: where cross-implementation checking earned its keep
 
-1. **Nothing has touched the production relay.** The mock encodes what the
+The engram `d` tag is an address, and IfáScript and Zàngbétò computed it as
+`HMAC(raw_secret, slug)`. The real construction, read from `minipae.py::d_tag`,
+is:
+
+```
+HMAC-SHA256(key = conversation_key(seckey, owner_pubkey),
+            msg = "agent-memory/v1/d-tag" || 0x00 || slug)
+```
+
+Both the key and the message were wrong, so every engram those two wrote landed
+where no minipae client would look. The code was entirely self-consistent and
+its own tests all passed; only comparing against a *different* implementation
+exposed it. Both now match minipae byte-for-byte on a pinned vector.
+
+This is the argument for one implementation per language, stated as evidence
+rather than principle: four of the defects found across this work were invisible
+from inside the repo that contained them.
+
+### Still not true
+
+1. **Nothing has touched the production relay.** The environment's network
+   policy answers 403 to `CONNECT` for every relay host
+   (`relay.damus.io`, `nos.lol`, `relay.nostr.band` all refused at the
+   gateway), so this could not be attempted here. The mock encodes what the
    ecosystem's own records say the relay does; that is not the same as the
    relay doing it.
-2. **Ọ̀ṢỌ́VM's tests have never run.** Julia is not installed in the environment
-   they were written in and the toolchain host is proxy-blocked. The
-   serialization algorithm was verified by porting its rules to Python and
-   reproducing the pinned vector; Julia syntax and semantics were not.
+2. **Ọ̀ṢỌ́VM's tests have never run.** Julia is absent, `julialang.org` is
+   blocked by the same policy, and no distro package exists. The serialization
+   algorithm was verified by porting its rules to Python and reproducing the
+   pinned vector — field order, separators and escaping all check out — but
+   Julia syntax and semantics were not.
+3. **No falsifier modules exist.** Every claim path requires the caller to
+   supply a content-addressed WASM predicate, and none has been written. Until
+   one is, claims can be built but not usefully resolved.
 
 ---
 
