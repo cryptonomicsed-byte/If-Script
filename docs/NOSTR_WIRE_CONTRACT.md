@@ -168,21 +168,45 @@ Shared across components so a reader can filter without parsing content:
 | BIPON39 | n/a | authority for NIP-06 derivation | — |
 | ỌMỌ KỌ́DÀ | yes | authority for agent identity | conform to §7 |
 | Vantage | yes | extensive; `_event_id` already §7-correct | conform to §2 |
-| **IfáScript** | yes | **implemented**, 101 tests | relay transport |
-| **Zàngbétò** | yes | **implemented**, 38 tests | relay transport |
-| **Kóòdù** | no, by design | **implemented**, 14 tests | signer wiring |
+| **IfáScript** | yes | **implemented + transport**, 150 tests | — |
+| **Zàngbétò** | yes | **implemented + transport**, 52 tests | — |
+| **Kóòdù** | no, by design | **implemented**, 18 tests | signer wiring |
 | **Ọ̀ṢỌ́VM** | no, by design | **implemented**, tests unrun (no Julia) | run tests; signer wiring |
-| Loom, Mycelium, Waggle, organism-core, Triune-Memory | — | none | extensions |
+| **organism-core** | no, by design | **implemented**, 19 tests — shared TS module | signer wiring |
+| Mycelium, Waggle, Loom, Triune-Memory | — | namespaces reserved | adopt a module below |
+
+### One implementation per language
+
+The contract's failure mode is silent divergence, so every added copy is
+added risk. Do not write a sixth:
+
+| Language | Module | Signs? |
+|---|---|---|
+| Python | `minipae.py` | yes |
+| Rust | `ifascript::nostr`, `zangbeto_enforcement::nostr_bridge` | yes |
+| TypeScript | `organism-core/bridge/nostr-wire.ts` | no |
+| Julia | `OSOVM/src/nostr_bridge.jl` | no |
+| JavaScript | `Koodu/nostr-adapter.js` | no |
+
+The TypeScript module is namespace-parameterised, so a TS organ passes its own
+`mem/<name>/` prefix rather than forking it. The remaining extension organs are
+Python (Mycelium, Loom, Waggle) or TypeScript (Triune-Memory, Mycelium's TS
+surface) and adopt the corresponding row.
 
 Both governance layers now emit, and so does the VM. Kóòdù and Ọ̀ṢỌ́VM build
 unsigned canonical events — neither holds agent keys, and neither should;
 IfáScript and Zàngbétò sign with identities derived from seeds they own.
 
-Two gaps remain, and both are real:
+**Transport** is implemented in both signing components — NIP-42 auth, publish,
+and read-back verification — and exercised against a loopback mock relay. It has
+still never run against the *real* Buzz relay, so relay-specific behaviour
+(its actual challenge format, its rejection strings) remains unverified.
 
-1. **No component opens a socket.** Every implementation prepares and signs;
-   none publishes. That is deliberate — nothing no-ops while pretending to have
-   sent — but it means nothing has been verified against a live relay.
+Two gaps remain:
+
+1. **Nothing has touched the production relay.** The mock encodes what the
+   ecosystem's own records say the relay does; that is not the same as the
+   relay doing it.
 2. **Ọ̀ṢỌ́VM's tests have never run.** Julia is not installed in the environment
    they were written in and the toolchain host is proxy-blocked. The
    serialization algorithm was verified by porting its rules to Python and
