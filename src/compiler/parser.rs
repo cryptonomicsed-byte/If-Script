@@ -380,29 +380,30 @@ fn parse_match_stmt(pair: pest::iterators::Pair<Rule>) -> MatchStmt {
 }
 
 fn parse_odu_pattern(pair: pest::iterators::Pair<Rule>) -> OduPattern {
-    for p in pair.into_inner() {
+    let inner: Vec<_> = pair.into_inner().collect();
+    let mut name = None;
+    let mut param = None;
+
+    for p in inner {
         match p.as_rule() {
             Rule::odu_name => {
-                return OduPattern::Odu {
-                    name: p.as_str().to_string(),
-                    param: None,
-                }
+                name = Some(p.as_str().to_string());
             }
             Rule::ident => {
-                // This is the param in <param>
-                if let Some(name_pair) = pair.clone().into_inner().next() {
-                    if name_pair.as_rule() == Rule::odu_name {
-                        return OduPattern::Odu {
-                            name: name_pair.as_str().to_string(),
-                            param: Some(p.as_str().to_string()),
-                        };
-                    }
-                }
+                param = Some(p.as_str().to_string());
             }
             _ => {}
         }
     }
-    OduPattern::Wildcard
+
+    if let Some(n) = name {
+        OduPattern::Odu {
+            name: n,
+            param,
+        }
+    } else {
+        OduPattern::Wildcard
+    }
 }
 
 fn parse_ase_stmt(pair: pest::iterators::Pair<Rule>) -> AseStmt {
