@@ -66,23 +66,37 @@ it agrees with every other Nostr client, not merely with itself.
 `47000..48000` is **Crucible's reserved block**. No other component may mint a
 kind inside it.
 
-### The relay allowlist constrains this absolutely
+### The relay allowlist constrains this
 
-The production Buzz relay enforces a strict kind allowlist in
-`required_scope_for_kind()`. An unadmitted kind is rejected **after**
-authentication succeeds, with `restricted: unknown event kind` — which reads
-like an auth failure and is not one. Admitted today: `30174` and
-`47000..47999`.
+The production Buzz relay enforces a kind allowlist in
+`required_scope_for_kind()` (`buzz-relay/src/handlers/ingest.rs`). A kind with
+no match arm is rejected **after** authentication succeeds, with
+`restricted: unknown event kind` — which reads like an auth failure and is not
+one.
 
-Consequence: **a new `kind:31xxx` for "ritual cast" would be unpublishable** on
-the one relay this ecosystem actually runs. So domain events borrow existing
-vocabularies instead of minting new ones:
+That allowlist is **broad**, not minimal. It covers most of Buzz's own
+vocabulary — kind `1` (text note), `5` (deletion), `7` (reaction), `1059`
+(gift wrap), `30023` (long-form), `30315` (user status), the NIP-51 lists,
+NIP-65 relay lists, agent profiles, stream messages — plus `30174`, plus the
+patched `47000..47999`. Vantage exercises roughly 25 of these in production.
+
+What it does **not** cover is an arbitrary new kind. So a fresh `kind:31xxx`
+for "ritual cast" would be unpublishable on the one relay this ecosystem
+actually runs, and domain events borrow existing vocabularies instead:
 
 - something that happened, and is remembered → **engram, `30174`**
 - something asserted, that others should check → **Crucible claim, `47001`**
 
-Implementations should check admissibility locally and fail there, rather than
-discovering it at ingest. IfáScript: `kinds::buzz_relay_admits`.
+> **Do not write a local mirror of the relay's allowlist.** A copy drifts out
+> of sync silently while asserting an authority the copying component cannot
+> verify. An earlier revision of this document said the relay admitted "only
+> `30174` and `47xxx`", and four implementations encoded that — which would
+> have reported kind `7` as inadmissible, the very NIP-25 witness vote §4
+> prescribes.
+>
+> Guard on the narrower, checkable claim instead: *the kinds this component
+> emits*. IfáScript, Zàngbétò, Kóòdù and Ọ̀ṢỌ́VM each expose `is_publishable`,
+> where `false` means "not ours", never "the relay would refuse it".
 
 ---
 
@@ -222,6 +236,7 @@ Recorded because acting on the docs alone would produce broken integrations.
 
 - [ ] Identity adopted from the birth layer, never re-derived
 - [ ] No kind minted outside an owning authority's block
+- [ ] Kind guard states what the component emits, not what the relay accepts
 - [ ] Admissibility checked locally before publish
 - [ ] Engram slugs HMAC'd; raw slug never on the wire
 - [ ] Claims carry a falsifier
