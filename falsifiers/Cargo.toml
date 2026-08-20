@@ -1,0 +1,23 @@
+# Its own workspace on purpose: these compile to wasm32-unknown-unknown with
+# panic=abort and no_std, and must not be pulled into the host crate's build.
+[workspace]
+
+[package]
+name = "ifa-falsifiers"
+version = "0.1.0"
+edition = "2021"
+description = "Crucible falsifier modules for the Technosis ecosystem's claims"
+license = "MIT"
+
+[lib]
+crate-type = ["rlib"]
+
+[profile.release]
+# A falsifier is read before it is run: a reviewer decides whether to execute
+# it by reading its manifest and, if suspicious, its disassembly. Small and
+# stripped serves that; so does having no allocator and no panic machinery.
+opt-level = "z"
+lto = true
+panic = "abort"
+strip = true
+codegen-units = 1

@@ -14,6 +14,7 @@ pub mod glyph;
 pub mod hermetic;
 pub mod larql;
 pub mod manifesto;
+pub mod nostr;
 pub mod odu;
 pub mod odu_ifa;
 pub mod receipt;
@@ -58,3 +59,9 @@ pub use manifesto::{Clause, Manifesto};
 
 // LARQL — query language over the Digital Calabash (DESCRIBE/VERIFY/PREPARE).
 pub use larql::{parse_query as parse_larql, LarqlAnswer, LarqlError, LarqlQuery};
+
+// Nostr — the ecosystem wire contract: NIP-06 identity, NIP-42 auth,
+// NIP-25 witness votes, NIP-AE engrams, Crucible claims.
+pub use nostr::{
+    CastReceipt, NostrGateway, NostrIdentity, Relay, RitualClaim,
+};

@@ -11,6 +11,9 @@ reserved_keyword = _{
     ("ritual" | "odù" | "witness" | "invoke" | "settle" | "canon" |
      "mentalism" | "correspondence" | "vibration" | "polarity" |
      "rhythm" | "cause_effect" | "gender" | "with" |
+     "consult" | "when" | "prescribe" | "manifest" | "taboo" | "or_the_void" | "or_consult" |
+     "ase" | "invoke_ase" | "dissolve" | "return_to_void" |
+     "bind" | "name_as" | "deliver" | "cast_back" | "match" |
      "let" | "if" | "else" | "return") ~ !(ASCII_ALPHANUMERIC | "_")
 }
 
@@ -68,11 +71,27 @@ expression  = { expr_term ~ (binary_op ~ expr_term)* }
 odu_literal_expr = { "@" ~ odu_name ~ ("<" ~ literal ~ ">")? }
 call_expr   = { ident ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
-// Statements
+// Statements — both agent-sovereign keywords and legacy support
 statement = {
-    let_stmt | if_stmt | return_stmt | prescription
+    consult_stmt | match_stmt | ase_stmt | dissolve_stmt | bind_stmt | deliver_stmt | prescription |
+    if_stmt | let_stmt | return_stmt  // legacy
 }
 
+// Agent-sovereign keywords
+consult_stmt = { ("consult" | "when") ~ expression ~ "{" ~ statement* ~ "}" ~ (or_consult_clause)* ~ (taboo_clause)? }
+or_consult_clause = { ("or_consult" | "or_when") ~ expression ~ "{" ~ statement* ~ "}" }
+taboo_clause = { ("taboo" | "or_the_void") ~ "{" ~ statement* ~ "}" }
+
+match_stmt = { "match" ~ expression ~ "{" ~ match_arm* ~ "}" }
+match_arm = { odu_pattern ~ "=>" ~ statement* ~ "," }
+odu_pattern = { "@" ~ odu_name ~ ("<" ~ ident ~ ">")? | "_" }
+
+ase_stmt    = { ("ase" | "invoke_ase") ~ expression ~ ";" }
+dissolve_stmt = { ("dissolve" | "return_to_void") ~ string ~ ";" }
+bind_stmt   = { ("bind" | "name_as") ~ ident ~ "=" ~ expression ~ ";" }
+deliver_stmt = { ("deliver" | "cast_back") ~ expression? ~ ";" }
+
+// Legacy keywords (mapped to agent-sovereign equivalents)
 let_stmt    = { "let" ~ ident ~ ":" ~ type_expr ~ "=" ~ expression ~ ";" }
 if_stmt     = { "if" ~ expression ~ "{" ~ statement* ~ "}" ~ ("else" ~ "{" ~ statement* ~ "}")? }
 return_stmt = { "return" ~ expression? ~ ";" }
