@@ -154,13 +154,51 @@ Shared across components so a reader can filter without parsing content:
 | BIPON39 | NIP-06 path | authority for derivation |
 | **IfáScript** | **implemented** | relay transport |
 | Ọ̀ṢỌ́VM | comments only | **no implementation** |
-| Kóòdù | none | **gate results unpublished** |
-| Zàngbétò | none | **receipts unpublished** |
+| **Kóòdù** | **implemented** (unsigned events) | signer wiring |
+| **Zàngbétò** | **implemented** | relay transport |
 | Loom, Mycelium, Waggle, organism-core, Triune-Memory | none | extensions |
 
-The two governance layers are the highest-value gap: Kóòdù decides what an
-agent may do and Zàngbétò audits what it did, and neither currently emits a
-verifiable record the swarm can read.
+Both governance layers now emit. Kóòdù publishes gate decisions as unsigned
+canonical events (it holds no keys by design); Zàngbétò publishes enforcement
+receipts signed by a guardian identity derived from its own seed. The remaining
+gap is Ọ̀ṢỌ́VM, and relay transport everywhere — no component yet opens a socket.
+
+---
+
+## 7. Canonical serialization — the subtlest way to break interop
+
+A NIP-01 event id is `sha256` over a canonical JSON array:
+
+```
+[0, pubkey, created_at, kind, tags, content]
+```
+
+serialized with no whitespace. **The signature is over that id**, so two
+implementations that serialize differently compute different ids and each
+rejects the other's signatures — with no error message that points at
+serialization.
+
+NIP-01 requires raw UTF-8. JavaScript's `JSON.stringify` and Rust's serde do
+this. **Python's `json.dumps` escapes non-ASCII to `\uXXXX` by default**
+(`ensure_ascii=True`), producing a different id. Measured, for content
+`"Òrìṣà Ògún"`:
+
+| Serialization | event id |
+|---|---|
+| `ensure_ascii=True` (Python default) | `f5ceda251451b3571736436644e34ca50eca23ad68ea3e067934e5f8668c2337` |
+| raw UTF-8 (NIP-01 correct; JS, Rust) | `e24b148552d35adf425c92e2e701ee3be6b4c86dbfd5fa2cc84a4c922250ac3b` |
+
+**`minipae.py::event_id` uses the default.** This is *latent* today because
+engram content is NIP-44 encrypted into ASCII base64 and its tags are hex — so
+nothing non-ASCII currently reaches the hash. It activates the moment any
+non-ASCII appears in a tag value or in an unencrypted event such as a Crucible
+claim.
+
+This ecosystem's vocabulary is Yorùbá. Ritual names, Òrìṣà names and vessel
+names all carry diacritics, so any component publishing them in the clear hits
+this immediately. Python implementations must pass `ensure_ascii=False`.
+
+Pinned by `koodu/nostr-adapter.test.js` and reproducible with the vector above.
 
 ---
 
@@ -190,3 +228,4 @@ Recorded because acting on the docs alone would produce broken integrations.
 - [ ] Reactions not counted as attestations
 - [ ] Secrets excluded from `Debug`/log rendering
 - [ ] Writes verified by independent read-back
+- [ ] Canonical JSON emits raw UTF-8 (Python: `ensure_ascii=False`)
