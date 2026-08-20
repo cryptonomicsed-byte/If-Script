@@ -34,6 +34,8 @@ log = "0.4"
 clap = { version = "4.4", features = ["derive"] }
 pest = "2.7"
 pest_derive = "2.7"
+nostr = { version = "0.29", features = ["nip06", "nip44", "std"] }
+hmac = "0.12"
 
 # Blocking HTTP for the NIST Beacon fetch — native targets only.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
