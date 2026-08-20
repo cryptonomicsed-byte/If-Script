@@ -159,8 +159,6 @@ Shared across components so a reader can filter without parsing content:
 
 ## 6. Per-repo status
 
-| Repo | Nostr today | Gap |
-|---|---|---|
 | Repo | Signs? | Status | Remaining |
 |---|---|---|---|
 | Buzz / Crucible | yes | authority for `47xxx` + relay allowlist | — |
