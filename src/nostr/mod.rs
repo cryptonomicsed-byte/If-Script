@@ -34,20 +34,28 @@
 //!
 //! # Scope of this module
 //!
-//! Event construction, signing and the interop contract are implemented here
-//! and covered by tests. **Relay transport is not** — [`NostrGateway`] holds
-//! the relay set and prepares events, but does not open sockets. Publishing is
-//! a separate increment; nothing here silently no-ops while pretending to have
-//! sent something.
+//! Event construction, signing, the interop contract and relay transport are
+//! all implemented here and covered by tests.
+//!
+//! [`NostrGateway`] prepares and signs; [`relay::RelayConnection`] opens the
+//! socket, completes NIP-42 auth, publishes, and reads back. The two are
+//! separate because signing is pure and testable while transport is not — and
+//! because a component that holds no keys still needs the transport half.
 
 pub mod events;
 pub mod identity;
 pub mod kinds;
+// Relay transport needs a real socket — native targets only, same gate as the
+// blocking HTTP used elsewhere in this crate.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod relay;
 
 pub use events::{
     cast_engram, relay_auth, ritual_claim, witness_vote, CastReceipt, EventError, RitualClaim,
 };
 pub use identity::NostrIdentity;
+#[cfg(not(target_arch = "wasm32"))]
+pub use relay::{parse_frame, RelayConnection, RelayError, RelayMessage};
 
 use nostr::Event;
 
@@ -151,6 +159,50 @@ impl NostrGateway {
 
     pub fn identity(&self) -> &NostrIdentity {
         &self.identity
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl NostrGateway {
+    /// Connect to every registered relay, authenticate, and publish `event`,
+    /// reading it back from each before counting that relay a success.
+    ///
+    /// Returns `(succeeded, failures)`. Publishing is **not** all-or-nothing:
+    /// one relay refusing an event does not mean another did, and reporting a
+    /// partial success as total failure would be as wrong as the reverse. A
+    /// caller that needs every relay to have the event must check that
+    /// `failures` is empty.
+    ///
+    /// Each relay gets its own connection, opened and closed here. That is
+    /// slower than a pooled connection and is the right default for an
+    /// operation that happens once per ritual rather than in a loop.
+    pub fn publish_everywhere(
+        &mut self,
+        event: &Event,
+    ) -> (Vec<String>, Vec<(String, relay::RelayError)>) {
+        let urls: Vec<String> = self.relays.iter().map(|r| r.url.clone()).collect();
+        let mut succeeded = Vec::new();
+        let mut failures = Vec::new();
+
+        for url in urls {
+            match self.publish_to(&url, event) {
+                Ok(auth_id) => {
+                    self.mark_authenticated(&url, auth_id);
+                    succeeded.push(url);
+                }
+                Err(e) => failures.push((url, e)),
+            }
+        }
+        (succeeded, failures)
+    }
+
+    /// Publish to one relay, verified by read-back. Returns the event id, which
+    /// the caller records as proof this relay accepted an authenticated session.
+    fn publish_to(&self, url: &str, event: &Event) -> Result<String, relay::RelayError> {
+        let mut conn = relay::RelayConnection::connect_authenticated(url, &self.identity)?;
+        conn.publish_verified(event)?;
+        conn.close();
+        Ok(event.id().to_hex())
     }
 }
 
