@@ -234,9 +234,8 @@ from inside the repo that contained them.
    algorithm was verified by porting its rules to Python and reproducing the
    pinned vector — field order, separators and escaping all check out — but
    Julia syntax and semantics were not.
-3. **No falsifier modules exist.** Every claim path requires the caller to
-   supply a content-addressed WASM predicate, and none has been written. Until
-   one is, claims can be built but not usefully resolved.
+3. ~~No falsifier modules exist.~~ **Done** — see `falsifiers/`. Four modules
+   covering the claims this ecosystem emits, 24 tests, addresses in §8.
 
 ---
 
@@ -274,6 +273,41 @@ names all carry diacritics, so any component publishing them in the clear hits
 this immediately. Python implementations must pass `ensure_ascii=False`.
 
 Pinned by `koodu/nostr-adapter.test.js` and reproducible with the vector above.
+
+---
+
+## 8. Falsifiers
+
+Crucible rejects a claim with no falsifier at parse time, so a claim path
+without one can be built and never resolved. `falsifiers/` supplies them.
+
+| Module | Claim | Pure? | Address |
+|---|---|---|---|
+| `gates_passed` | governance gates passed | yes | `sha256:18d904870ba845d962ac72cb9cc3198b877c28e0257fac839bc51c1d4e558994` |
+| `deterministic_execution` | job ran deterministically | yes | `sha256:975d498fa6991d920b02e26be00fa771f0d1cb4109ae44c2d3a7d12b77c0a9ed` |
+| `enforcement_proportionate` | enforcement matched the anomaly | yes | `sha256:2f628270fbc78111b3f6e2172f4f78840ec39f4c8d84f8db84a4382992e41547` |
+| `signal_resolved` | directional call was correct | no (`market:close`) | `sha256:bc150381144666386b67fa9d95ed96e8f3e5590ab926112c4a1b7a3e66394a41` |
+
+Which one each emitter passes as its `falsifier`:
+
+| Emitter | Module |
+|---|---|
+| IfáScript `ritual_claim` | `gates_passed` |
+| Kóòdù `gateClaim` | `gates_passed` |
+| Ọ̀ṢỌ́VM `execution_claim` | `deterministic_execution` |
+| Zàngbétò `enforcement_claim` | `enforcement_proportionate` |
+| Loom `build_signal_claim` | `signal_resolved` |
+| Mycelium, Waggle | none yet — findings need a predicate per finding type |
+
+Two rules a new falsifier must satisfy, both enforced rather than advised:
+
+- **Cannot see → `indeterminate`, never `fails`.** The kernel weighs a verdict
+  as evidence either way, so treating blindness as refutation lets an outage
+  manufacture disagreement.
+- **A pure module's outcome must move under mutation of its inputs.**
+  `claim.build` runs `audit_vacuity` and refuses one that does not — a module
+  returning `holds` unconditionally is worse than none, because it looks like
+  one.
 
 ---
 
