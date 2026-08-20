@@ -13,7 +13,8 @@
 //! - **A witness vote** — a NIP-25 reaction (`kind:7`).
 
 use hmac::{Hmac, Mac};
-use nostr::{Event, EventBuilder, EventId, Kind, Tag, Url};
+use nostr::nips::nip44::v2::ConversationKey;
+use nostr::{Event, EventBuilder, EventId, Kind, PublicKey, Tag, Url};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
@@ -23,15 +24,54 @@ use crate::vm::CastResult;
 
 type HmacSha256 = Hmac<Sha256>;
 
+/// Domain separator minipae prefixes onto a slug before HMACing it.
+///
+/// Read from `minipae.py::D_TAG_DOMAIN`. It is part of the address, so a
+/// different value here silently puts every engram somewhere no minipae client
+/// looks.
+const D_TAG_DOMAIN: &[u8] = b"agent-memory/v1/d-tag";
+
+/// Derive the NIP-44 conversation key an engram's `d` tag is keyed with.
+///
+/// `HKDF-extract(salt = "nip44-v2", ikm = ECDH_x(secret, owner))`, matching
+/// `minipae.py::conversation_key`. Note it is keyed to the **pair**: the same
+/// agent writing for two different owners produces two different addresses,
+/// which is what NIP-AE intends.
+pub fn conversation_key(
+    identity: &NostrIdentity,
+    owner_pubkey_hex: &str,
+) -> Result<[u8; 32], EventError> {
+    let secret = identity
+        .keys()
+        .secret_key()
+        .map_err(|e| EventError::Signing(e.to_string()))?;
+    let owner = PublicKey::from_hex(owner_pubkey_hex)
+        .map_err(|e| EventError::Serialisation(format!("invalid owner pubkey: {e}")))?;
+
+    let ck = ConversationKey::derive(secret, &owner);
+    let bytes = ck.as_bytes();
+    bytes
+        .try_into()
+        .map_err(|_| EventError::Signing("conversation key was not 32 bytes".into()))
+}
+
 /// Hash an engram slug into its `d` tag value.
 ///
-/// minipae HMACs the slug rather than publishing it, so a relay operator
-/// learns that an agent wrote *something* without learning what it named it.
-/// Same construction here (`HMAC-SHA256(key, slug)`, hex) so an IfáScript
-/// engram is addressable by any minipae client holding the same key.
-pub fn d_tag(slug: &str, key: &[u8]) -> String {
-    let mut mac = HmacSha256::new_from_slice(key)
+/// minipae HMACs the slug rather than publishing it, so a relay operator learns
+/// that an agent wrote *something* without learning what it named it.
+///
+/// The construction is `HMAC-SHA256(conversation_key, DOMAIN || 0x00 || slug)`,
+/// read out of `minipae.py::d_tag` rather than guessed. Both halves matter and
+/// an earlier revision of this module got both wrong — it keyed the HMAC with
+/// the raw secret and omitted the domain prefix, which put every IfáScript
+/// engram at an address no minipae client would ever compute. NIP-AE exists so
+/// memory is portable across runtimes; an engram only this crate can find is
+/// not portable memory.
+pub fn d_tag(slug: &str, conversation_key: &[u8]) -> String {
+    let mut mac = HmacSha256::new_from_slice(conversation_key)
         .expect("HMAC-SHA256 accepts a key of any length");
+    mac.update(D_TAG_DOMAIN);
+    mac.update(&[0u8]);
     mac.update(slug.as_bytes());
     hex::encode(mac.finalize().into_bytes())
 }
@@ -132,12 +172,10 @@ pub fn cast_engram(
             "{key_part:?} cannot form a valid engram slug"
         ))
     })?;
-    let key = identity
-        .secret_bytes()
-        .map_err(EventError::Signing)?;
+    let ck = conversation_key(identity, owner_pubkey_hex)?;
 
     let tags = vec![
-        tag(kinds::TAG_D, &d_tag(&slug, &key))?,
+        tag(kinds::TAG_D, &d_tag(&slug, &ck))?,
         tag(kinds::TAG_P, owner_pubkey_hex)?,
         tag(kinds::TAG_ODU, &receipt.odu_index.to_string())?,
         tag(kinds::TAG_VESSEL, &receipt.vessel)?,
@@ -278,6 +316,73 @@ mod tests {
 
         let wire = serde_json::to_string(&event).unwrap();
         assert!(!wire.contains("mem/ifa/cast/abc123"));
+    }
+
+    #[test]
+    fn d_tag_matches_minipae_byte_for_byte() {
+        // The definitive interop check. These three values were computed
+        // independently by minipae.py for the same fixed secret:
+        //
+        //   python3 -c "import minipae as m; sk=bytes([0x11])*32; \
+        //     pub=m.pubkey_from_secret(int.from_bytes(sk,'big')); \
+        //     ck=m.conversation_key(sk,pub); \
+        //     print(pub.hex(), ck.hex(), m.d_tag('mem/ifa/cast/deadbeef', ck))"
+        //
+        // An earlier revision of this module keyed the HMAC with the raw
+        // secret and omitted the domain prefix. It was self-consistent and
+        // completely wrong: every engram landed at an address no minipae
+        // client would compute, which defeats the portability NIP-AE exists
+        // for. Nothing in this crate could have noticed -- only comparing
+        // against the other implementation does.
+        let id = NostrIdentity::from_secret_bytes(&[0x11u8; 32]).unwrap();
+        assert_eq!(
+            id.public_key_hex(),
+            "4f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa"
+        );
+
+        let ck = conversation_key(&id, id.public_key_hex()).unwrap();
+        assert_eq!(
+            hex::encode(ck),
+            "a65131cde28eaad748cae74823789762b626ec54411e4e2f7bc125d30b689899",
+            "conversation key must match minipae's NIP-44 HKDF-extract"
+        );
+
+        assert_eq!(
+            d_tag("mem/ifa/cast/deadbeef", &ck),
+            "6b60fc5bbbae4c0786660a26c9850d0cd9c5afa95b1372b07dd2fc3387dddec7",
+            "d tag must match minipae::d_tag for the same slug and key"
+        );
+    }
+
+    #[test]
+    fn the_d_tag_domain_prefix_is_load_bearing() {
+        // Dropping the prefix yields a different address, silently. This
+        // asserts the prefix is actually applied rather than merely present in
+        // the source.
+        let ck = [7u8; 32];
+        let mut bare = HmacSha256::new_from_slice(&ck).unwrap();
+        bare.update(b"mem/ifa/x");
+        assert_ne!(d_tag("mem/ifa/x", &ck), hex::encode(bare.finalize().into_bytes()));
+    }
+
+    #[test]
+    fn an_engram_for_a_different_owner_gets_a_different_address() {
+        // The conversation key is keyed to the (agent, owner) pair, so the
+        // same agent writing the same slug for two owners must not collide.
+        let agent = NostrIdentity::generate();
+        let owner_a = NostrIdentity::generate();
+        let owner_b = NostrIdentity::generate();
+
+        let ck_a = conversation_key(&agent, owner_a.public_key_hex()).unwrap();
+        let ck_b = conversation_key(&agent, owner_b.public_key_hex()).unwrap();
+        assert_ne!(ck_a, ck_b);
+        assert_ne!(d_tag("mem/ifa/state", &ck_a), d_tag("mem/ifa/state", &ck_b));
+    }
+
+    #[test]
+    fn a_malformed_owner_pubkey_is_rejected() {
+        let id = NostrIdentity::generate();
+        assert!(conversation_key(&id, "not-a-pubkey").is_err());
     }
 
     #[test]
