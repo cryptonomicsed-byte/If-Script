@@ -20,5 +20,5 @@ fn main() {
         );
     }
 
-    println!("Àṣẹ sealed from atmospheric thunder.");
+    println!("Agency sealed.");
 }

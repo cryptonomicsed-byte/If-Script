@@ -1,6 +1,6 @@
 //! Julia bridge — interop with the Block Mesh Julia resonance/scoring layer.
 //!
-//! When `JULIA_URL` (or `OSUN_URL`) points at a running Julia service, a
+//! When `JULIA_URL` (or `HISTORY_URL`) points at a running Julia service, a
 //! `ResonancePacket` is POSTed to `{base}/mesh/resonance` and the computed score
 //! is returned. Fail-open: returns `None` when no service is configured, on any
 //! transport error, or on `wasm32` (no blocking HTTP there).
@@ -32,7 +32,7 @@ pub fn packet_to_julia_json(packet: &ResonancePacket) -> Result<String, JuliaBri
 fn julia_base() -> Option<String> {
     let raw = std::env::var("JULIA_URL")
         .ok()
-        .or_else(|| std::env::var("OSUN_URL").ok())?;
+        .or_else(|| std::env::var("HISTORY_URL").ok())?;
     let trimmed = raw.trim().trim_end_matches('/');
     if trimmed.is_empty() {
         None
@@ -112,9 +112,9 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn call_is_noop_without_service() {
-        // Neither JULIA_URL nor OSUN_URL is set in the test environment.
+        // Neither JULIA_URL nor HISTORY_URL is set in the test environment.
         std::env::remove_var("JULIA_URL");
-        std::env::remove_var("OSUN_URL");
+        std::env::remove_var("HISTORY_URL");
         assert!(call_julia_resonance("{}").is_none());
         assert!(julia_base().is_none());
     }

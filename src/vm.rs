@@ -105,7 +105,7 @@ impl OduOp {
             }
             OduOp::HaltIfOne => {
                 if vm.stack.last() == Some(&1) {
-                    println!("Àṣẹ");
+                    println!("Agency");
                     vm.halted = true;
                 }
             }

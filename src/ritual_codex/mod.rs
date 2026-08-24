@@ -192,7 +192,7 @@ mod tests {
     fn cast_resonance_scores_none_without_julia() {
         // No Julia service configured → fail-open: receipt issued, score is None.
         std::env::remove_var("JULIA_URL");
-        std::env::remove_var("OSUN_URL");
+        std::env::remove_var("HISTORY_URL");
         let codex = RitualCodex::new();
         let engine = CosmogramEngine::new();
         let packet = ResonancePacket::new(0, 1, Day::Wednesday, 0, "seek wisdom");
