@@ -282,3 +282,4 @@ mod tests {
         assert!(g.npub().starts_with("npub1"));
     }
 }
+

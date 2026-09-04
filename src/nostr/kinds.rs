@@ -55,6 +55,9 @@ pub const KIND_CLAIM: u64 = 47001;
 /// Crucible: one agent independently executing a claim's falsifier.
 pub const KIND_ATTESTATION: u64 = 47002;
 
+/// Crucible: a counter-argument challenging a claim before its resolution date.
+pub const KIND_CHALLENGE: u64 = 47003;
+
 /// Crucible: the resolution kernel's derived epistemic status for a claim.
 pub const KIND_VERDICT: u64 = 47004;
 

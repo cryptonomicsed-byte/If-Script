@@ -19,6 +19,10 @@ path = "src/bin/cast_state.rs"
 name = "ifa"
 path = "src/bin/ifa.rs"
 
+[[bin]]
+name = "market_resolved"
+path = "src/bin/market_resolved.rs"
+
 [dependencies]
 rand = "0.8"
 rand_chacha = "0.3"
