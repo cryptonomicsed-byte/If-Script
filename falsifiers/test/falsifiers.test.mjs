@@ -23,6 +23,7 @@ const GATES = DIR + 'gates_passed.wasm';
 const DETERM = DIR + 'deterministic_execution.wasm';
 const ENFORCE = DIR + 'enforcement_proportionate.wasm';
 const SIGNAL = DIR + 'signal_resolved.wasm';
+const MARKET = DIR + 'market_resolved.wasm';
 
 const run = (m, inputs, extra) => runFalsifier(m, Object.assign({ inputs }, extra || {}));
 
@@ -148,6 +149,76 @@ test('signal-resolved: traps if run without its grant', () => {
   assert.match(r.message, /not granted by the manifest/);
 });
 
+// === market-resolved (observational) ===
+//
+// The venue settles the claim, so the claimant cannot tune the outcome. What
+// these cover is the part that is easy to get wrong: the several ways a market
+// can decline to give an answer, none of which are refutations.
+
+const MKT = { observations: ['market:resolution'] };
+const mkt = (resolution) =>
+  resolution === undefined ? { manifest: MKT } : { manifest: MKT, observations: { 'market:resolution': resolution } };
+
+test('market-resolved: holds when the market settled as claimed', () => {
+  assert.equal(run(MARKET, { outcome: 'yes' }, mkt('yes')).verdict, HOLDS);
+});
+
+test('market-resolved: refutes when the market settled the other way', () => {
+  assert.equal(run(MARKET, { outcome: 'yes' }, mkt('no')).verdict, FAILS);
+});
+
+test('market-resolved: outcome names are compared case-insensitively', () => {
+  assert.equal(run(MARKET, { outcome: 'Yes' }, mkt('YES')).verdict, HOLDS);
+});
+
+test('market-resolved: distinct outcomes sharing a prefix do not agree', () => {
+  // Truncating the comparison would report these as equal.
+  assert.equal(run(MARKET, { outcome: 'yes' }, mkt('yes-but-void')).verdict, FAILS);
+});
+
+for (const state of ['unresolved', 'pending', 'open', 'void', 'cancelled', 'canceled']) {
+  test(`market-resolved: abstains when the market is ${state}`, () => {
+    // A withdrawn or unsettled question is not a wrong answer. Reporting these
+    // as FAILS would let a venue cancel a market into a refutation.
+    assert.equal(run(MARKET, { outcome: 'yes' }, mkt(state)).verdict, INDETERMINATE);
+  });
+}
+
+test('market-resolved: abstains when the resolution was never gathered', () => {
+  assert.equal(run(MARKET, { outcome: 'yes' }, mkt()).verdict, INDETERMINATE);
+});
+
+test('market-resolved: abstains when the claim names no outcome', () => {
+  assert.equal(run(MARKET, { venue: 'limitless' }, mkt('yes')).verdict, INDETERMINATE);
+});
+
+test('market-resolved: abstains rather than truncating an oversized outcome', () => {
+  // No allocator: refusing is the only safe answer, since a truncated compare
+  // invents agreement between different outcomes.
+  const long = 'y'.repeat(200);
+  assert.equal(run(MARKET, { outcome: long }, mkt('yes')).verdict, INDETERMINATE);
+});
+
+test('market-resolved: declares exactly one observation', () => {
+  const r = run(MARKET, { outcome: 'yes' }, mkt('yes'));
+  assert.deepEqual(r.observed, ['market:resolution'], 'blast radius must be one line');
+});
+
+test('market-resolved: traps if run without its grant', () => {
+  const r = run(MARKET, { outcome: 'yes' }, { manifest: { observations: [] } });
+  assert.equal(r.verdict, 'trapped');
+  assert.match(r.message, /not granted by the manifest/);
+});
+
+test('market-resolved: the verdict tracks the settlement, not the inputs', () => {
+  // The property that makes this a real falsifier rather than one hiding behind
+  // the impure-module exemption: hold the claim fixed, move the world, and the
+  // verdict moves with it.
+  const claim = { outcome: 'yes' };
+  assert.equal(run(MARKET, claim, mkt('yes')).verdict, HOLDS);
+  assert.equal(run(MARKET, claim, mkt('no')).verdict, FAILS);
+});
+
 // === non-vacuity: what claim.build enforces on pure falsifiers ===
 
 for (const [name, mod, inputs] of [
@@ -165,7 +236,7 @@ for (const [name, mod, inputs] of [
 test('every module exports the ABI the sandbox requires', () => {
   // A module missing either export is rejected before it runs; catching that
   // here beats catching it at a relay.
-  for (const m of [GATES, DETERM, ENFORCE, SIGNAL]) {
+  for (const m of [GATES, DETERM, ENFORCE, SIGNAL, MARKET]) {
     assert.doesNotThrow(() => run(m, {}), `${m} failed to instantiate`);
   }
 });

@@ -287,6 +287,7 @@ without one can be built and never resolved. `falsifiers/` supplies them.
 | `deterministic_execution` | job ran deterministically | yes | `sha256:975d498fa6991d920b02e26be00fa771f0d1cb4109ae44c2d3a7d12b77c0a9ed` |
 | `enforcement_proportionate` | enforcement matched the anomaly | yes | `sha256:2f628270fbc78111b3f6e2172f4f78840ec39f4c8d84f8db84a4382992e41547` |
 | `signal_resolved` | directional call was correct | no (`market:close`) | `sha256:bc150381144666386b67fa9d95ed96e8f3e5590ab926112c4a1b7a3e66394a41` |
+| `market_resolved` | market settled as claimed | no (`market:resolution`) | `sha256:d4c928dc5e988b9f4d9a46272c6093d808a22963093b8e9f736feae77aa04af1` |
 
 Which one each emitter passes as its `falsifier`:
 
