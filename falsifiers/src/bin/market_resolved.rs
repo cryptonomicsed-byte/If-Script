@@ -22,6 +22,15 @@
 //! assert nothing. This one cannot: its verdict tracks a settlement it had no
 //! part in producing.
 //!
+//! # Where the observation comes from
+//!
+//! This module never fetches anything; it reads what the probe gathered. Two
+//! gatherers currently produce `market:resolution`: IfáScript's own
+//! `src/bin/market_resolved.rs` (Limitless, an operator CLI) and Vantage's
+//! `backend/prediction_markets.py` (Limitless and Polymarket, async). Either
+//! may supply the observation — this module cannot tell them apart, which is
+//! the point: its verdict depends on the settlement, not on who read it.
+//!
 //! # Reading the observation
 //!
 //! `market:resolution` arrives as the settled outcome, compared literally

@@ -42,6 +42,7 @@
 //! separate because signing is pure and testable while transport is not — and
 //! because a component that holds no keys still needs the transport half.
 
+pub mod arena;
 pub mod events;
 pub mod identity;
 pub mod kinds;
@@ -50,8 +51,10 @@ pub mod kinds;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod relay;
 
+pub use arena::{consensus, leading_stance, Decision, Heartbeat, Tally, Vote};
 pub use events::{
-    cast_engram, relay_auth, ritual_claim, witness_vote, CastReceipt, EventError, RitualClaim,
+    cast_engram, engram_with_slug, relay_auth, ritual_claim, witness_vote, CastReceipt,
+    EventError, RitualClaim,
 };
 pub use identity::NostrIdentity;
 #[cfg(not(target_arch = "wasm32"))]
