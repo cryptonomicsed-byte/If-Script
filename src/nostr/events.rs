@@ -172,15 +172,63 @@ pub fn cast_engram(
             "{key_part:?} cannot form a valid engram slug"
         ))
     })?;
+    engram_with_content(
+        identity,
+        content,
+        owner_pubkey_hex,
+        &slug,
+        vec![
+            (kinds::TAG_ODU, receipt.odu_index.to_string()),
+            (kinds::TAG_VESSEL, receipt.vessel.clone()),
+            (kinds::TAG_GATES, receipt.gates_passed.to_string()),
+        ],
+    )
+}
+
+/// Publish any serialisable payload as an engram under a caller-chosen slug.
+///
+/// The slug is what makes an engram addressable, so choosing it is the caller's
+/// decision: one that varies per record accumulates history, one that is stable
+/// replaces in place. Both are legitimate and the difference is not something
+/// this function should guess.
+///
+/// The `d` tag is always the HMAC of the slug under the conversation key, never
+/// the slug itself — two agents publishing the same logical slug must not
+/// collide, and a reader without the key must not be able to enumerate an
+/// agent's memory by guessing slugs.
+pub fn engram_with_slug<T: Serialize>(
+    identity: &NostrIdentity,
+    payload: &T,
+    owner_pubkey_hex: &str,
+    slug: &str,
+    extra_tags: Vec<(&str, String)>,
+) -> Result<Event, EventError> {
+    let content =
+        serde_json::to_string(payload).map_err(|e| EventError::Serialisation(e.to_string()))?;
+    engram_with_content(identity, content, owner_pubkey_hex, slug, extra_tags)
+}
+
+fn engram_with_content(
+    identity: &NostrIdentity,
+    content: String,
+    owner_pubkey_hex: &str,
+    slug: &str,
+    extra_tags: Vec<(&str, String)>,
+) -> Result<Event, EventError> {
+    if !kinds::validate_slug(slug) {
+        return Err(EventError::Serialisation(format!(
+            "{slug:?} is not a valid engram slug"
+        )));
+    }
     let ck = conversation_key(identity, owner_pubkey_hex)?;
 
-    let tags = vec![
-        tag(kinds::TAG_D, &d_tag(&slug, &ck))?,
+    let mut tags = vec![
+        tag(kinds::TAG_D, &d_tag(slug, &ck))?,
         tag(kinds::TAG_P, owner_pubkey_hex)?,
-        tag(kinds::TAG_ODU, &receipt.odu_index.to_string())?,
-        tag(kinds::TAG_VESSEL, &receipt.vessel)?,
-        tag(kinds::TAG_GATES, &receipt.gates_passed.to_string())?,
     ];
+    for (name, value) in extra_tags {
+        tags.push(tag(name, &value)?);
+    }
 
     build(identity, kinds::KIND_AGENT_ENGRAM, content, tags)
 }

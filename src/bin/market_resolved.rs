@@ -1,6 +1,23 @@
-//! Crucible falsifier — Limitless prediction-market resolution.
+//! Limitless prediction-market resolution — the **gatherer**.
 //!
-//! Observation key: "market:resolution"
+//! Observation key produced: "market:resolution"
+//!
+//! # Which of the two market_resolved artifacts this is
+//!
+//! There are two, and they are different layers rather than duplicates:
+//!
+//! * **This binary** fetches a market's settlement over the network and prints
+//!   a verdict. It is a gatherer and an operator tool.
+//! * **`falsifiers/src/bin/market_resolved.rs`** is the sandboxed module
+//!   Crucible actually executes. It is `no_std` wasm, content-addressed, and
+//!   makes no network call at all — it reads `market:resolution` through the
+//!   `observe()` ABI and traps if its manifest does not grant that key.
+//!
+//! The split is not incidental. A falsifier's manifest is its blast radius, and
+//! a reviewer decides whether to run one by reading it. A module that opens its
+//! own socket has an unbounded, undeclared blast radius, so the sandboxed form
+//! cannot fetch and this form cannot be the thing an attester runs. Feed this
+//! binary's output into the module as an observation.
 //!
 //! Reads a market's outcome from the Limitless public API (no API key) and
 //! emits a Crucible verdict:
@@ -131,11 +148,96 @@ fn evaluate(market: &MarketResponse, claimed_outcome: &str) -> Verdict {
     };
 
     let claimed = claimed_outcome.trim().to_lowercase();
-    // Accept "yes"/"no" and also the raw label (e.g. "Yes"/"No")
-    if claimed == winning_label || winning_label.starts_with(&claimed) {
+    // Exact match only. A prefix match here reads "yes" as agreeing with a
+    // market that settled "yes and no", which manufactures a Passes in the
+    // claimant's favour out of a venue's wording. Both sides are already
+    // lowercased and trimmed, so "Yes" still matches "yes".
+    if claimed == winning_label {
         Verdict::Passes
     } else {
         Verdict::Fails
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn market(resolved: bool, idx: Option<u32>, outcomes: &[&str]) -> MarketResponse {
+        MarketResponse {
+            is_resolved: Some(resolved),
+            winning_outcome_index: idx,
+            outcomes: Some(outcomes.iter().map(|s| s.to_string()).collect()),
+            title: None,
+        }
+    }
+
+    #[test]
+    fn a_matching_outcome_passes() {
+        let m = market(true, Some(0), &["Yes", "No"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Passes));
+    }
+
+    #[test]
+    fn a_differing_outcome_fails() {
+        let m = market(true, Some(1), &["Yes", "No"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Fails));
+    }
+
+    #[test]
+    fn outcome_comparison_ignores_case() {
+        let m = market(true, Some(0), &["YES", "NO"]);
+        assert!(matches!(evaluate(&m, "Yes"), Verdict::Passes));
+    }
+
+    #[test]
+    fn a_longer_label_sharing_a_prefix_does_not_pass() {
+        // The regression this guards: a prefix match turns a venue's wording
+        // into a verdict for the claimant.
+        let m = market(true, Some(0), &["yes and no", "neither"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Fails));
+    }
+
+    #[test]
+    fn an_unresolved_market_is_indeterminate() {
+        let m = market(false, None, &["Yes", "No"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Indeterminate(_)));
+    }
+
+    #[test]
+    fn resolved_without_a_winning_index_is_indeterminate() {
+        let m = market(true, None, &["Yes", "No"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Indeterminate(_)));
+    }
+
+    #[test]
+    fn an_out_of_range_index_is_indeterminate() {
+        // Never a refutation: an index we cannot resolve is our confusion, not
+        // the claimant's error.
+        let m = market(true, Some(7), &["Yes", "No"]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Indeterminate(_)));
+    }
+
+    #[test]
+    fn an_empty_outcomes_list_is_indeterminate() {
+        let m = market(true, Some(0), &[]);
+        assert!(matches!(evaluate(&m, "yes"), Verdict::Indeterminate(_)));
+    }
+
+    #[test]
+    fn every_blind_path_abstains_rather_than_refuting() {
+        // The discipline the module header states: silence is never refutation.
+        for m in [
+            market(false, None, &["Yes", "No"]),
+            market(true, None, &["Yes", "No"]),
+            market(true, Some(99), &["Yes", "No"]),
+            market(true, Some(0), &[]),
+        ] {
+            assert!(
+                !matches!(evaluate(&m, "yes"), Verdict::Fails),
+                "a blind path must never produce Fails"
+            );
+        }
     }
 }
 
