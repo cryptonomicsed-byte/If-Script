@@ -1,4 +1,5 @@
 pub mod archetype;
+pub mod seven_bridge;
 pub mod calabash;
 pub mod compiler;
 pub mod cosmogram;
@@ -64,4 +65,11 @@ pub use larql::{parse_query as parse_larql, LarqlAnswer, LarqlError, LarqlQuery}
 // NIP-25 witness votes, NIP-AE engrams, Crucible claims.
 pub use nostr::{
     CastReceipt, NostrGateway, NostrIdentity, Relay, RitualClaim,
+};
+
+// USF-7 ↔ ActionVessel semantic contract
+// SevenFunction ontology → 16 ActionVessels → 256 Odù → 65,536 composed state space
+pub use seven_bridge::{
+    governing_function, vessels_for_function, primary_vessel, function_for_odu,
+    SevenFunction, TwinStateVector,
 };
