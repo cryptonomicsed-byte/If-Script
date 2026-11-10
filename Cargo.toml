@@ -38,7 +38,7 @@ log = "0.4"
 clap = { version = "4.4", features = ["derive"] }
 pest = "2.7"
 pest_derive = "2.7"
-nostr = { version = "0.29", features = ["nip06", "nip44", "std"] }
+nostr = { version = "0.44", features = ["nip06", "nip44", "std"] }
 hmac = "0.12"
 
 # Blocking HTTP for the NIST Beacon fetch, and a blocking WebSocket client for
@@ -58,4 +58,4 @@ getrandom = { version = "0.2", features = ["js"] }
 # The relay transport tests run a loopback mock relay, so the socket path is
 # exercised without depending on an external relay being reachable.
 tungstenite = { version = "0.30", features = ["native-tls"] }
-nostr = { version = "0.29", features = ["std"] }
+nostr = { version = "0.44", features = ["std"] }

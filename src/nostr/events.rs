@@ -14,7 +14,7 @@
 
 use hmac::{Hmac, Mac};
 use nostr::nips::nip44::v2::ConversationKey;
-use nostr::{Event, EventBuilder, EventId, Kind, PublicKey, Tag, Url};
+use nostr::{Event, EventBuilder, EventId, Kind, PublicKey, RelayUrl, Tag};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
@@ -41,14 +41,12 @@ pub fn conversation_key(
     identity: &NostrIdentity,
     owner_pubkey_hex: &str,
 ) -> Result<[u8; 32], EventError> {
-    let secret = identity
-        .keys()
-        .secret_key()
-        .map_err(|e| EventError::Signing(e.to_string()))?;
+    let secret = identity.keys().secret_key();
     let owner = PublicKey::from_hex(owner_pubkey_hex)
         .map_err(|e| EventError::Serialisation(format!("invalid owner pubkey: {e}")))?;
 
-    let ck = ConversationKey::derive(secret, &owner);
+    let ck = ConversationKey::derive(secret, &owner)
+        .map_err(|e| EventError::Signing(e.to_string()))?;
     let bytes = ck.as_bytes();
     bytes
         .try_into()
@@ -263,7 +261,7 @@ pub fn witness_vote(
 ) -> Result<Event, EventError> {
     let reaction = if endorse { "+" } else { "-" };
     EventBuilder::reaction(target, reaction)
-        .to_event(identity.keys())
+        .sign_with_keys(identity.keys())
         .map_err(|e| EventError::Signing(e.to_string()))
 }
 
@@ -276,9 +274,9 @@ pub fn relay_auth(
     challenge: &str,
     relay_url: &str,
 ) -> Result<Event, EventError> {
-    let url = Url::parse(relay_url).map_err(|e| EventError::RelayUrl(e.to_string()))?;
+    let url = RelayUrl::parse(relay_url).map_err(|e| EventError::RelayUrl(e.to_string()))?;
     EventBuilder::auth(challenge, url)
-        .to_event(identity.keys())
+        .sign_with_keys(identity.keys())
         .map_err(|e| EventError::Signing(e.to_string()))
 }
 
@@ -302,8 +300,9 @@ fn build(
     if !kinds::is_publishable(kind) {
         return Err(EventError::KindNotAdmitted(kind));
     }
-    EventBuilder::new(Kind::Custom(kind), content, tags)
-        .to_event(identity.keys())
+    EventBuilder::new(Kind::Custom(kind as u16), content)
+        .tags(tags)
+        .sign_with_keys(identity.keys())
         .map_err(|e| EventError::Signing(e.to_string()))
 }
 

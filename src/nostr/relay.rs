@@ -274,7 +274,7 @@ impl RelayConnection {
             .map_err(|e| RelayError::Transport(e.to_string()))?;
         self.send(&format!("[\"EVENT\",{payload}]"))?;
 
-        let want = event.id().to_hex();
+        let want = event.id.to_hex();
         loop {
             match self.read_message()? {
                 RelayMessage::Ok {
@@ -310,7 +310,7 @@ impl RelayConnection {
     /// separate `REQ` for the id and requires the relay to serve the event.
     pub fn publish_verified(&mut self, event: &Event) -> Result<(), RelayError> {
         self.publish(event)?;
-        let id = event.id();
+        let id = event.id;
         if !self.has_event(id)? {
             return Err(RelayError::NotRetrievable(id.to_hex()));
         }

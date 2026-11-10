@@ -106,7 +106,6 @@ impl NostrIdentity {
     pub fn nsec(&self) -> Result<String, String> {
         self.keys
             .secret_key()
-            .map_err(|e| format!("secret key unavailable: {e}"))?
             .to_bech32()
             .map_err(|e| format!("nsec bech32 encoding failed: {e}"))
     }
@@ -114,11 +113,7 @@ impl NostrIdentity {
     /// Raw secret key bytes — for deriving the NIP-44 conversation key that
     /// HMACs engram slugs.
     pub fn secret_bytes(&self) -> Result<[u8; 32], String> {
-        let sk = self
-            .keys
-            .secret_key()
-            .map_err(|e| format!("secret key unavailable: {e}"))?;
-        Ok(sk.secret_bytes())
+        Ok(self.keys.secret_key().secret_bytes())
     }
 
     /// The signing keys, for event construction.

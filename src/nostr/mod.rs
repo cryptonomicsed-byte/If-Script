@@ -205,7 +205,7 @@ impl NostrGateway {
         let mut conn = relay::RelayConnection::connect_authenticated(url, &self.identity)?;
         conn.publish_verified(event)?;
         conn.close();
-        Ok(event.id().to_hex())
+        Ok(event.id.to_hex())
     }
 }
 
