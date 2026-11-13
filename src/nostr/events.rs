@@ -302,6 +302,12 @@ fn build(
     }
     EventBuilder::new(Kind::Custom(kind as u16), content)
         .tags(tags)
+        // nostr 0.44 discards every `p` tag that equals the event author unless
+        // self-tagging is explicitly allowed (0.29 did not). An agent casting an
+        // engram addressed to its own key is a legitimate NIP-AE case, and the
+        // stripped tag was silent -- it changed the wire format, not just an API
+        // name. Keep the pre-migration behaviour: every tag we build is sent.
+        .allow_self_tagging()
         .sign_with_keys(identity.keys())
         .map_err(|e| EventError::Signing(e.to_string()))
 }
@@ -324,7 +330,7 @@ mod tests {
         // Signature must verify against the agent's own key, or no downstream
         // reader can attribute the cast.
         assert!(event.verify().is_ok());
-        assert_eq!(event.kind(), Kind::Custom(kinds::KIND_AGENT_ENGRAM));
+        assert_eq!(event.kind, Kind::Custom(kinds::KIND_AGENT_ENGRAM as u16));
         assert_eq!(event.pubkey.to_hex(), id.public_key_hex());
     }
 
@@ -334,7 +340,7 @@ mod tests {
         let receipt = CastReceipt::from_cast(&a_cast(), true).with_receipt_hash("deadbeef");
         let event = cast_engram(&id, &receipt, id.public_key_hex()).unwrap();
 
-        let decoded: CastReceipt = serde_json::from_str(event.content()).unwrap();
+        let decoded: CastReceipt = serde_json::from_str(&event.content).unwrap();
         assert_eq!(decoded, receipt);
     }
 
@@ -347,7 +353,7 @@ mod tests {
         let names: Vec<String> = event
             .tags
             .iter()
-            .filter_map(|t| t.as_vec().first().cloned())
+            .filter_map(|t| t.as_slice().first().cloned())
             .collect();
         assert!(names.iter().any(|n| n == kinds::TAG_D), "missing d tag");
         assert!(names.iter().any(|n| n == kinds::TAG_P), "missing p tag");
@@ -450,7 +456,7 @@ mod tests {
             half_life_secs: 900,
         };
         let event = ritual_claim(&id, &claim).unwrap();
-        assert_eq!(event.kind(), Kind::Custom(kinds::KIND_CLAIM));
+        assert_eq!(event.kind, Kind::Custom(kinds::KIND_CLAIM as u16));
         assert!(event.verify().is_ok());
     }
 
@@ -462,13 +468,13 @@ mod tests {
         let target = cast_engram(&author, &receipt, author.public_key_hex()).unwrap();
 
         let vote = witness_vote(&witness, &target, true).unwrap();
-        assert_eq!(vote.kind(), Kind::Custom(kinds::KIND_REACTION));
-        assert_eq!(vote.content(), "+");
+        assert_eq!(vote.kind, Kind::Custom(kinds::KIND_REACTION as u16));
+        assert_eq!(vote.content, "+");
         assert!(vote.verify().is_ok());
 
         // It must reference the event it is voting on, or it is unattributable.
         let wire = serde_json::to_string(&vote).unwrap();
-        assert!(wire.contains(&target.id().to_hex()));
+        assert!(wire.contains(&target.id.to_hex()));
     }
 
     #[test]
@@ -478,14 +484,14 @@ mod tests {
         let receipt = CastReceipt::from_cast(&a_cast(), true);
         let target = cast_engram(&author, &receipt, author.public_key_hex()).unwrap();
 
-        assert_eq!(witness_vote(&witness, &target, false).unwrap().content(), "-");
+        assert_eq!(witness_vote(&witness, &target, false).unwrap().content, "-");
     }
 
     #[test]
     fn relay_auth_is_kind_22242() {
         let id = NostrIdentity::generate();
         let event = relay_auth(&id, "challenge-abc", "wss://relay.example.com").unwrap();
-        assert_eq!(event.kind(), Kind::Custom(kinds::KIND_AUTH));
+        assert_eq!(event.kind, Kind::Custom(kinds::KIND_AUTH as u16));
         assert!(event.verify().is_ok());
     }
 
@@ -516,7 +522,7 @@ mod tests {
         let ea = cast_engram(&a, &receipt, a.public_key_hex()).unwrap();
         let eb = cast_engram(&b, &receipt, b.public_key_hex()).unwrap();
 
-        assert_ne!(ea.id(), eb.id());
+        assert_ne!(ea.id, eb.id);
         // Same slug, different keys, so the addresses must differ too.
         assert_ne!(ea.tags, eb.tags);
     }

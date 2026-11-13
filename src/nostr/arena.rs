@@ -312,7 +312,7 @@ mod tests {
         let id = NostrIdentity::generate();
         let d = a_decision();
         let ev = decision_engram(&id, &d, id.public_key_hex()).unwrap();
-        let back: Decision = serde_json::from_str(ev.content()).unwrap();
+        let back: Decision = serde_json::from_str(&ev.content).unwrap();
         assert_eq!(back, d);
     }
 
@@ -370,10 +370,10 @@ mod tests {
     }
 
     fn d_of(ev: &nostr::Event) -> String {
-        ev.tags()
+        ev.tags
             .iter()
             .find_map(|t| {
-                let v = t.as_vec();
+                let v = t.as_slice();
                 (v.first().map(String::as_str) == Some("d")).then(|| v[1].clone())
             })
             .expect("engram must carry a d tag")
